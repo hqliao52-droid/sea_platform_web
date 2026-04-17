@@ -2,6 +2,8 @@
   background-color: #f5f7fa;
   min-height: 100vh;
   padding-bottom: 30rpx;
+  padding-bottom: 200rpx;
+  position: relative;
 
   /* 导航栏 */
   .navbar {
@@ -29,6 +31,10 @@
     background-color: #e0ebf4;
     border-radius: 16rpx;
     padding: 30rpx;
+    max-height: 25vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
 
     .summary-header {
       display: flex;
@@ -77,9 +83,9 @@
           font-size: 25rpx;
           line-height: 1.5;
 
-          &.highlight {
-            background-color: #f0e8ff;
-          }
+          // &.highlight {
+          //   background-color: #f0e8ff;
+          // }
         }
       }
     }
@@ -358,12 +364,21 @@
   }
 
   /* 底部输入框 */
-  .input-area {
-    display: flex;
-    align-items: center;
-    padding: 20rpx 30rpx;
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     background-color: #ffffff;
-    margin-top: 20rpx;
+    z-index: 999; /* 确保在最上层 */
+    box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05); /* 可选：加一点顶部阴影增加层次感 */
+
+    .input-area {
+      display: flex;
+      align-items: center;
+      padding: 20rpx 30rpx;
+      background-color: #ffffff;
+    // margin-top: 20rpx;
 
     .avatar {
       width: 70rpx;
@@ -395,7 +410,7 @@
       .send-btn {
         width: 50rpx;
         height: 50rpx;
-        background-color: #007aff;
+        background-color: #bdcddd;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -408,11 +423,15 @@
       }
     }
   }
+  }
+  
 
   .hint-text {
     text-align: center;
     font-size: 24rpx;
     color: #888;
-    margin-top: 10rpx;
+    padding-bottom: 20rpx;
+    padding-top: 10rpx;
+    // margin-top: 10rpx;
   }
 }

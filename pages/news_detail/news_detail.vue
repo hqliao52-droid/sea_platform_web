@@ -24,12 +24,13 @@
         </view>
       </view>
       <!-- 风险提示 -->
-      <view class="risk-tip">
+      <view class="risk-tip" v-if="risk === true">
         <view class="risk-header">
-          <image src="/static/warn.png" mode="aspectFit"></image>
+          <image src="/static/warning.png" mode="aspectFit"></image>
           <text class="risk-title">风险提示</text>
         </view>
-        <text class="risk-text">政策变动频繁，建议在执行大宗发货前咨询当地合规官。</text>
+        <text class="risk-text"><span style="font-weight: bold;">市场/运营风险：</span>{{market_risk}}</text><br>
+        <text class="risk-text"><span style="font-weight: bold;">政策/合规要点：</span>{{policy_compliance}}</text>
       </view>
     </view>
 
@@ -88,7 +89,7 @@
       </view>
     </view>
 
-    <!-- 合规雷达推送 -->
+    <!-- 合规雷达推送
     <view class="radar-card">
       <view class="radar-header">
         <view class="radar-icon"></view>
@@ -100,22 +101,24 @@
       <view class="radar-setting" @click="openSetting">
         <text>配置推送规则</text>
       </view>
-    </view>
+    </view> -->
 
     <!-- 底部输入框 -->
-    <view class="input-area">
-      <view class="avatar">
-        <image src="/static/avatar.png" mode="aspectFill"></image>
-      </view>
-      <view class="input-box">
-        <input type="text" placeholder="针对此文章询问 AI ..." />
-        <view class="send-btn">
-          <image src="/static/send.png" mode="aspectFit"></image>
+    <view class="bottom-bar">
+      <view class="input-area">
+        <view class="avatar">
+          <image src="/static/avatar.png" mode="aspectFill"></image>
+        </view>
+        <view class="input-box">
+          <input type="text" placeholder="针对此文章询问 AI ..." />
+          <view class="send-btn">
+            <image src="/static/send.png" mode="aspectFit"></image>
+          </view>
         </view>
       </view>
-    </view>
-    <view class="hint-text">
-      <text>💡 尝试问：“这份政策对电子产品出口有什么具体影响？”</text>
+      <view class="hint-text">
+        <text>💡 尝试问：“这份政策对电子产品出口有什么具体影响？”</text>
+      </view>
     </view>
   </view>
 </template>

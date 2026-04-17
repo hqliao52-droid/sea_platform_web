@@ -4,7 +4,8 @@
       "path": "pages/index/index",
       "style": {
         "navigationBarTitleText": "Go Global AI",
-        "navigationStyle": "custom" 
+        "navigationStyle": "custom",
+        "onReachBottomDistance": 50
       }
     },
     {
