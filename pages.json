@@ -1,0 +1,68 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "Go Global AI",
+        "navigationStyle": "custom" 
+      }
+    },
+    {
+      "path": "pages/ai-chat/ai-chat", 
+      "style": {
+        "navigationBarTitleText": "AI问答"
+      }
+    },
+    {
+      "path": "pages/mine/mine",
+      "style": {
+        "navigationBarTitleText": "个人中心"
+      }
+    },
+    {
+      "path": "pages/news_detail/news_detail",
+      "style": {
+        "navigationBarTitleText": "新闻详情"
+      }
+    },
+    {
+      "path": "pages/webView/webView",
+      "style": {
+        "navigationBarTitleText": "浏览网页",
+        "navigationStyle": "default" 
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "UniApp",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#1296db",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "static/home.png",
+        "selectedIconPath": "static/home-active.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/ai-chat/ai-chat",
+        "iconPath": "static/ai.png",
+        "selectedIconPath": "static/ai-active.png",
+        "text": "AI问答"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "iconPath": "static/mine.png",
+        "selectedIconPath": "static/mine-active.png",
+        "text": "个人中心"
+      }
+    ]
+  }
+}

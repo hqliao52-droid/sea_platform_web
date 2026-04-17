@@ -1,0 +1,306 @@
+.container {
+  min-height: 100vh;
+  background-color: #ffffff;
+  padding-bottom: 120rpx;
+
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 120rpx;
+    padding: 0 30rpx;
+    border-bottom: 1rpx solid #f0f0f0;
+
+    .logo-icon {
+      width: 72rpx;
+      height: 72rpx;
+      background-color: #007aff;
+      border-radius: 16rpx;
+      mask: url('https://img.icons8.com/fluency/96/000000/lightning-bolt.png') no-repeat center;
+      -webkit-mask: url('https://img.icons8.com/fluency/96/000000/lightning-bolt.png') no-repeat center;
+      background-size: 60%;
+    }
+
+    .nav-title {
+      font-size: 36rpx;
+      font-weight: 600;
+      color: #000;
+    }
+
+    .login-btn {
+      font-size: 32rpx;
+      color: #007aff;
+      font-weight: 500;
+    }
+  }
+
+  .hot-section {
+    padding: 30rpx;
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20rpx;
+
+      .title-icon {
+        font-size: 32rpx;
+        color: #007aff;
+        margin-right: 10rpx;
+      }
+
+      .title-text {
+        font-size: 34rpx;
+        font-weight: 600;
+        color: #000;
+      }
+    }
+
+    .hot-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16rpx;
+
+      .tag {
+        padding: 12rpx 24rpx;
+        border-radius: 40rpx;
+        font-size: 28rpx;
+
+        &.tag-blue {
+          background-color: #e6f0ff;
+          color: #007aff;
+        }
+
+        &.tag-red {
+          background-color: #ffe6e6;
+          color: #ff4d4f;
+        }
+
+        &.tag-green {
+          background-color: #e6f7e6;
+          color: #52c41a;
+        }
+
+        &.tag-normal {
+          background-color: #f5f5f5;
+          color: #666;
+        }
+      }
+    }
+  }
+
+  .category-bar {
+    display: flex;
+    gap: 20rpx;
+    padding: 0 30rpx 20rpx;
+    overflow-x: auto;
+
+    .category-item {
+      padding: 16rpx 32rpx;
+      border-radius: 16rpx;
+      font-size: 30rpx;
+      color: #666;
+      background-color: #f5f5f5;
+      white-space: nowrap;
+
+      &.active {
+        background-color: #007aff;
+        color: #fff;
+      }
+    }
+  }
+
+  .info-card {
+    display: flex;
+    align-items: center;
+    margin: 0 30rpx 30rpx;
+    padding: 30rpx;
+    background-color: #f0f7ff;
+    border-radius: 16rpx;
+
+    .info-icon {
+      width: 80rpx;
+      height: 80rpx;
+      margin-right: 20rpx;
+      border-radius: 50%;
+      background-color: #007aff; 
+      background-image: url('/static/binlin.png'); 
+      background-repeat: no-repeat;
+      background-position: center; 
+      background-size: 60%; 
+    }
+
+    .info-content {
+      flex: 1;
+
+      .info-title {
+        font-size: 34rpx;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 8rpx;
+      }
+
+      .info-desc {
+        font-size: 28rpx;
+        color: #666;
+      }
+    }
+
+    .info-arrow {
+      font-size: 40rpx;
+      color: #007aff;
+    }
+  }
+
+  .news-header {
+    padding: 0 30rpx 20rpx;
+
+    .news-title {
+      font-size: 38rpx;
+      font-weight: 600;
+      color: #000;
+      margin-bottom: 8rpx;
+    }
+
+    .news-subtitle {
+      font-size: 28rpx;
+      color: #666;
+    }
+  }
+
+  .news-list {
+    padding: 0 30rpx;
+
+    .news-item {
+      display: flex;
+      padding: 15rpx;
+      border-bottom: 1rpx solid #b7b5b5bf;
+      margin-bottom: 10rpx;
+      gap: 20rpx;
+      border-radius: 12rpx;
+      border: 1px dashed #b7b5b5bf;
+      box-sizing: border-box; 
+
+      .news-main {
+        flex: 1;
+
+        .news-source {
+          display: flex;
+          align-items: center;
+          gap: 10rpx;
+          margin-bottom: 12rpx;
+
+          .source-name {
+            font-size: 28rpx;
+            color: #007aff;
+            font-weight: 500;
+          }
+
+          .source-time {
+            font-size: 26rpx;
+            color: #999;
+          }
+        }
+
+        .news-title-text {
+          font-size: 32rpx;
+          font-weight: 600;
+          color: #000;
+          line-height: 1.4;
+          margin-bottom: 16rpx;
+        }
+
+        .news-ai-summary {
+          background-color: #f9f9f9;
+          padding: 20rpx;
+          border-radius: 8rpx;
+          border-left: 4rpx solid #007aff;
+          margin-bottom: 16rpx;
+		  word-wrap: break-word;
+		  white-space: pre-wrap;
+
+          .summary-label {
+            font-size: 28rpx;
+            color: #007aff;
+            font-weight: 500;
+          }
+
+          .summary-text {
+            font-size: 28rpx;
+            color: #333;
+            line-height: 1.5;
+          }
+        }
+      }
+
+      .news-img {
+        width: 200rpx;
+        height: 200rpx;
+        border-radius: 16rpx;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .float-btn {
+    position: fixed;
+    right: 30rpx;
+    bottom: 150rpx;
+    width: 120rpx;
+    height: 120rpx;
+    background-color: #007aff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4rpx 20rpx rgba(0, 122, 255, 0.3);
+
+    .float-icon {
+      font-size: 60rpx;
+      color: #fff;
+      font-weight: 300;
+    }
+  }
+
+  .tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120rpx;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    border-top: 1rpx solid #f0f0f0;
+    z-index: 999;
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8rpx;
+
+      &.active {
+        .tab-text {
+          color: #007aff;
+        }
+        .tab-icon {
+          background-color: #007aff;
+        }
+      }
+
+      .tab-icon {
+        width: 48rpx;
+        height: 48rpx;
+        background-color: #007aff;
+        border-radius: 4rpx;
+
+
+      .tab-text {
+        font-size: 26rpx;
+        color: #999;
+      }
+    }
+  }
+}
+}
