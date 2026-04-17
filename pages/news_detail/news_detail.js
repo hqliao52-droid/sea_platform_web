@@ -20,6 +20,9 @@ export default {
       content:'',
       isContentExpanded: false, 
       displayContent: '' ,
+      market_risk: '',
+      policy_compliance: '',
+      risk: false,
       relationList: [
         {
           type: "政策",
@@ -177,7 +180,12 @@ export default {
             this.news_title = res.data.title;
             this.content = res.data.content || '';
             this.keywordList = res.data.ai_origin_output?.keywords || [];
-
+            if(res.data.ai_origin_output.policy_risk.market_risk !== "未提及"){
+              this.market_risk = res.data.ai_origin_output?.policy_risk.market_risk || '';
+              this.policy_compliance = res.data.ai_origin_output?.policy_risk.policy_compliance || '';
+              this.risk = true;
+            }
+            
             const abstract = res.data.ai_origin_output?.abstract || '';
             if (abstract) {
               this.aiSummaryList = abstract.match(/[\s\S]*?。/g) || [abstract];

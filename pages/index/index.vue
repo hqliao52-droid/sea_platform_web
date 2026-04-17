@@ -71,6 +71,20 @@
     
         <!-- <view class="news-img" :style="{backgroundColor: item.bgColor}"></view> -->
       </view>
+
+      <view class="load-status">
+        <text v-if="isLoading">加载中...</text>
+        <text v-else-if="isFinished">—— 我是有底线的 ——</text>
+        <text v-else>上拉加载更多</text>
+      </view>
+    </view>
+
+    <view 
+      class="back-to-top-btn" 
+      v-if="showBackToTop" 
+      @click="backToTop"
+    >
+      <text class="top-icon">↑</text>
     </view>
   </view>
 </template>

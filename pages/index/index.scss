@@ -239,6 +239,13 @@
         flex-shrink: 0;
       }
     }
+
+    .load-status {
+      text-align: center;
+      padding: 30rpx 0;
+      font-size: 26rpx;
+      color: #999;
+    }
   }
 
   .float-btn {
@@ -296,11 +303,40 @@
         border-radius: 4rpx;
 
 
-      .tab-text {
-        font-size: 26rpx;
-        color: #999;
+        .tab-text {
+          font-size: 26rpx;
+          color: #999;
+        }
       }
     }
   }
-}
+
+  .back-to-top-btn {
+    position: fixed;
+    right: 30rpx;
+    bottom: 180rpx; /* 位置稍微高一点，避免和 TabBar 或底部内容冲突 */
+    width: 80rpx;
+    height: 80rpx;
+    background-color: rgba(0, 122, 255, 0.8); /* 半透明蓝色 */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.2);
+    z-index: 999;
+    transition: opacity 0.3s; /* 淡入淡出效果 */
+
+    .top-icon {
+      font-size: 40rpx;
+      color: #fff;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    /* 可选：点击时的活跃状态 */
+    &:active {
+      background-color: rgba(0, 122, 255, 1);
+      transform: scale(0.95);
+    }
+  }
 }
