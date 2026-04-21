@@ -1,22 +1,14 @@
 <template>
   <view class="container">
-    <!-- 顶部导航栏 -->
-    <view class="navbar">
-      <view class="nav-title">企业控制中心</view>
-      <view class="nav-actions">
-        <view class="icon">⋮</view>
-      </view>
-    </view>
-
     <!-- 企业信息卡片 -->
     <view class="company-card">
       <view class="company-header">
         <view class="avatar">
-          <image src="/static/company-avatar.png" mode="aspectFill"></image>
+          <image v-bind:src="avatar" mode="aspectFill"></image>
           <view class="status-dot"></view>
         </view>
         <view class="company-info">
-          <view class="company-name">环球智造有限公司</view>
+          <view class="company-name">{{nikeName }}</view>
           <view class="company-level">
             <text>⟐</text> 高级企业账户 (Pro)
           </view>

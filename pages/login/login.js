@@ -36,8 +36,12 @@ export default {
         if (res.code === '200' || res.code === 200) {
           const token = res.data.token
           
-          // 4. 存入缓存
+          // token存入缓存
           uni.setStorageSync('token', token)
+          uni.setStorageSync('userInfo',JSON.stringify(res.data.userInfo))
+          
+          // 3. 可选：如果有 Vuex/Pinia，同时更新全局状态
+          // this.$store.commit('SET_USER_INFO', userInfo);
           
           uni.showToast({ title: '登录成功', icon: 'success' })
           
