@@ -1,0 +1,300 @@
+.chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #ffffff;
+
+  /* 顶部导航栏 */
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 120rpx;
+    padding: 0 30rpx;
+    border-bottom: 1rpx solid #eee;
+
+    .nav-left {
+      .logo {
+        width: 60rpx;
+        height: 60rpx;
+        background-color: #000;
+        border-radius: 12rpx;
+      }
+    }
+
+    .nav-title {
+      font-size: 34rpx;
+      font-weight: 500;
+    }
+
+    .nav-right {
+      .pro-tag {
+        font-size: 26rpx;
+        color: #007aff;
+        background-color: #e8f4ff;
+        padding: 8rpx 16rpx;
+        border-radius: 20rpx;
+      }
+    }
+  }
+
+  /* 聊天内容区 */
+  .chat-content {
+    flex: 1;
+    padding: 20rpx 30rpx;
+    box-sizing: border-box;
+
+    .time-divider {
+      text-align: center;
+      font-size: 26rpx;
+      color: #999;
+      margin: 20rpx 0;
+      background-color: #f5f7fa;
+      display: inline-block;
+      padding: 6rpx 16rpx;
+      border-radius: 20rpx;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .message-item {
+      display: flex;
+      margin-bottom: 30rpx;
+
+      &.ai-msg {
+        .bubble-wrapper {
+          margin-left: 20rpx;
+        }
+        .bubble {
+          background-color: #f5f7fa;
+          border-radius: 0 20rpx 20rpx 20rpx;
+        }
+      }
+
+      &.user-msg {
+        flex-direction: row-reverse;
+
+        .bubble-wrapper {
+          margin-right: 20rpx;
+          align-items: flex-end;
+        }
+
+        .bubble {
+          background-color: #007aff;
+          color: #fff;
+          border-radius: 20rpx 0 20rpx 20rpx;
+        }
+
+        .msg-time {
+          text-align: right;
+        }
+      }
+
+      .avatar {
+        width: 80rpx;
+        height: 80rpx;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+
+        image {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      .bubble-wrapper {
+        display: flex;
+        flex-direction: column;
+        max-width: 70%;
+
+        .bubble {
+          padding: 24rpx;
+          font-size: 28rpx;
+          line-height: 1.6;
+
+          .suggestions {
+            margin-top: 20rpx;
+
+            .suggest-title {
+              font-size: 28rpx;
+              font-weight: 500;
+              margin-bottom: 10rpx;
+              display: flex;
+              align-items: center;
+
+              &::before {
+                content: '';
+                display: inline-block;
+                width: 6rpx;
+                height: 28rpx;
+                background-color: #007aff;
+                margin-right: 10rpx;
+              }
+            }
+
+            .suggest-list {
+              .suggest-item {
+                font-size: 26rpx;
+                line-height: 1.6;
+                margin: 6rpx 0;
+              }
+            }
+          }
+
+          .sources {
+            margin-top: 20rpx;
+
+            .source-title {
+              font-size: 26rpx;
+              color: #666;
+              margin-bottom: 12rpx;
+            }
+
+            .source-item {
+              display: flex;
+              align-items: center;
+              background-color: #f0f2f5;
+              border-radius: 12rpx;
+              padding: 16rpx;
+              margin-bottom: 10rpx;
+
+              image {
+                width: 36rpx;
+                height: 36rpx;
+                margin-right: 16rpx;
+              }
+
+              .source-name {
+                flex: 1;
+                font-size: 28rpx;
+              }
+
+              .link-icon {
+                width: 30rpx;
+                height: 30rpx;
+              }
+            }
+          }
+        }
+
+        .msg-action {
+          display: flex;
+          margin-top: 10rpx;
+
+          .action-btn {
+            display: flex;
+            align-items: center;
+            margin-right: 30rpx;
+            font-size: 24rpx;
+            color: #666;
+
+            image {
+              width: 26rpx;
+              height: 26rpx;
+              margin-right: 6rpx;
+            }
+          }
+        }
+
+        .msg-time {
+          font-size: 24rpx;
+          color: #999;
+          margin-top: 6rpx;
+        }
+      }
+    }
+
+    /* 常用查询 */
+    .quick-query {
+      margin-top: 40rpx;
+
+      .query-title {
+        font-size: 28rpx;
+        color: #666;
+        margin-bottom: 20rpx;
+      }
+
+      .query-tags {
+        display: flex;
+        flex-wrap: wrap;
+
+        .tag {
+          font-size: 26rpx;
+          padding: 12rpx 24rpx;
+          background-color: #f5f7fa;
+          border-radius: 30rpx;
+          margin-right: 16rpx;
+          margin-bottom: 16rpx;
+        }
+      }
+    }
+  }
+
+  /* 底部输入区域 */
+  .input-area {
+    padding: 20rpx 30rpx;
+    border-top: 1rpx solid #eee;
+    background-color: #fff;
+
+    .input-tools {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16rpx;
+
+      .tool-item {
+        width: 40rpx;
+        height: 40rpx;
+        margin-right: 30rpx;
+
+        image {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      .upload-tip {
+        font-size: 24rpx;
+        color: #999;
+        margin-left: auto;
+      }
+    }
+
+    .input-box {
+      display: flex;
+      align-items: center;
+      background-color: #f5f7fa;
+      border-radius: 40rpx;
+      padding: 0 24rpx;
+
+      .input {
+        flex: 1;
+        height: 80rpx;
+        font-size: 28rpx;
+      }
+
+      .send-btn {
+        width: 60rpx;
+        height: 60rpx;
+        background-color: #007aff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        image {
+          width: 30rpx;
+          height: 30rpx;
+        }
+      }
+    }
+
+    .disclaimer {
+      text-align: center;
+      font-size: 22rpx;
+      color: #999;
+      margin-top: 10rpx;
+    }
+  }
+}
