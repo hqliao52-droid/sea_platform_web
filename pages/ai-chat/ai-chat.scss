@@ -61,11 +61,13 @@
     .message-item {
       display: flex;
       margin-bottom: 30rpx;
+      align-items: flex-start; // 统一垂直对齐方式
 
       &.ai-msg {
         .bubble-wrapper {
           margin-left: 20rpx;
         }
+
         .bubble {
           background-color: #f5f7fa;
           border-radius: 0 20rpx 20rpx 20rpx;
@@ -73,7 +75,8 @@
       }
 
       &.user-msg {
-        flex-direction: row-reverse;
+        /* 移除 row-reverse，改用 justify-content 控制整体位置 */
+        justify-content: flex-end;
 
         .bubble-wrapper {
           margin-right: 20rpx;

@@ -1,4 +1,4 @@
-import {request} from '@/utils/request.js';
+import { request } from '@/utils/request.js';
 import icon from 'uview-ui/libs/config/props/icon';
 
 export default {
@@ -22,7 +22,7 @@ export default {
       uni.chooseImage({
         count: 1,
         sizeType: ['compressed'],
-        extension: ['jpg', 'jpeg', 'png'], 
+        extension: ['jpg', 'jpeg', 'png'],
         success: (res) => {
           const tempFilePath = res.tempFilePaths[0]
           // 直接上传，不做后缀判断！
@@ -81,8 +81,12 @@ export default {
         uni.showToast({ title: '两次密码不一致', icon: 'none' })
         return
       }
-      
-      try{
+
+      // 防止重复提交
+      if (this.loading) return;
+      this.loading = true;
+
+      try {
         const res = await request({
           url: '/user/register',
           method: 'POST',
@@ -95,22 +99,43 @@ export default {
           }
         })
 
+        // 假设 request 拦截器已经处理了非200的情况抛出异常，或者返回统一结构
+        // 这里根据你原有的代码逻辑判断
         if (res.code !== '200' && res.code !== 200) {
           uni.showToast({ title: res.msg || '注册失败', icon: 'none' })
+          this.loading = false; // 失败时重置 loading
           return
-        }else {
-          console.log('注册成功：', res)
-          this.loading = true
-          setTimeout(() => {
-            uni.showToast({ title: '注册成功', icon: 'success' })
-            uni.navigateBack()
-            this.loading = false
-          }, 1000)
         }
-      }catch(err){
-        console.error('Register Error:', err)
+
+        // 注册成功
+        uni.showToast({
+          title: '注册成功',
+          icon: 'success',
+          duration: 1500
+        });
+
+        // 延迟跳转，确保 Toast 显示
+        setTimeout(() => {
+          this.loading = false;
+
+          // 【修改点】使用 redirectTo 关闭当前页面并跳转到登录页
+          // 路径请根据你的实际项目结构修改，通常是 /pages/login/login
+          uni.redirectTo({
+            url: '/pages/login/login'
+          });
+
+          // 备选方案：如果想清空所有页面栈并重启到登录页（更彻底）
+          // uni.reLaunch({
+          //   url: '/pages/login/login'
+          // });
+
+        }, 500);
+
+      } catch (err) {
+        console.error('Register Error:', err);
+        this.loading = false; // 异常时重置 loading
+        uni.showToast({ title: '网络异常，请重试', icon: 'none' });
       }
-        
     },
 
     // 返回登录

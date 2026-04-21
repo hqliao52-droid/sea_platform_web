@@ -20,7 +20,7 @@
       <view v-for="(msg, index) in messageList" :key="index" class="message-item" :class="{ 'user-msg': msg.type === 'user', 'ai-msg': msg.type === 'ai' }">
         <!-- AI头像 -->
         <view v-if="msg.type === 'ai'" class="avatar ai-avatar">
-          <image src="/static/ai-avatar.png" mode="aspectFill"></image>
+          <image src="/static/ai-active.png" mode="aspectFill"></image>
         </view>
 
         <!-- 消息气泡 -->
