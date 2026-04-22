@@ -1,8 +1,11 @@
 import { request } from '@/utils/request.js'
+import { getUserInfo } from '@/utils/user.js';
 
 export default {
   data() {
     return {
+      nickName: '未登录',
+      avatar: '/static/images/default-avatar.png' || "",
       categories: [],
       newsList: [],
 
@@ -14,6 +17,11 @@ export default {
       isFinished: false,
 
       showBackToTop: false,
+      categoryId: null,
+
+      // 控制 UI 高亮的当前选中 ID，初始为 'all' 或 null
+      currentCategoryId: 'all', 
+      
     }
   },
   onLoad() {
@@ -35,20 +43,47 @@ export default {
     // 当滚动超过 300px (约半屏) 时显示按钮
     this.showBackToTop = e.scrollTop > 300
   },
-  
+  onShow(){
+    // 每次页面显示时重新获取最新用户信息
+    this.loadUserInfo();
+  },
 
   methods: {
+    async switchCategory(item){
+      if( item === "all"){
+        this.categoryId = null
+        this.currentCategoryId = 'all'
+      }else{
+        this.categoryId = item.id
+        this.currentCategoryId = item.id
+      }
+      this.page = 1
+      this.pageSize = 10
+      console.log('切换分类：', item)
+      this.getNewsList(false)
+    },
     backToTop() {
       uni.pageScrollTo({
         scrollTop: 0,
         duration: 300 // 动画时长，单位 ms
       })
     },
+    async loadUserInfo(){
+      const userInfo = getUserInfo();
+      if(userInfo){
+        this.nickName = userInfo.nickname;
+        this.avatar = userInfo.avatar;
+      }else{
+        // 未登录
+        // uni.redirectTo({ url: '/pages/login/login' });
+      }
+    },
     /**
      * 获取新闻列表
      * @param {Boolean} isLoadMore - 是否为加载更多模式（默认为 false，即首次加载）
      */
     async getNewsList(isLoadMore = false) {
+      console.log("当前分类ID",this.categoryId)
       // 1. 如果正在加载中，直接返回，防止重复请求
       if (this.isLoading) return
       
@@ -63,15 +98,21 @@ export default {
       }
 
       try {
+        const data = {
+          page: this.page,
+          page_size: this.pageSize,
+        }
+        if (this.categoryId !== null && this.categoryId !== undefined) {
+          data.category_id = this.categoryId
+        }
         const res = await request({
           url: '/news_detail/get_news_detail',
-          data: {
-            page: this.page,
-            page_size: this.pageSize // 注意：通常后端 Python/FastAPI 喜欢用下划线 page_size
-          }
+          method: 'GET',
+          data
         })
+        console.log('请求参数', this.page,this.pageSize,this.categoryId)
         
-        console.log('接口返回：', res)
+        // console.log('news_detail接口返回：', res)
         
         if (res.code === 200 || res.code === '200') {
           const newList = res.data.result.map(item => ({
@@ -133,7 +174,6 @@ export default {
         const res = await request({
           url: '/category/get_category',
         })
-        console.log('分类返回：', res)
         if (res.code === 200 || res.code === '200') {
           this.categories = res.data
         }
@@ -143,7 +183,6 @@ export default {
     },
 
     toDetail(item) {
-      console.log('点击了：', item.id)
       uni.navigateTo({
         url: `/pages/news_detail/news_detail?id=${item.id}`,
         success: (res) => {
@@ -155,13 +194,13 @@ export default {
       });
     },
 
-    switchTab(index) {
-      console.log('切换tab：', index)
-      // 如果需要切换分类刷新列表，可在此重置分页
-      // this.page = 1
-      // this.isFinished = false
-      // this.newsList = []
-      // this.getNewsList()
-    }
+    // switchTab(index) {
+    //   console.log('切换tab：', index)
+    //   // 如果需要切换分类刷新列表，可在此重置分页
+    //   // this.page = 1
+    //   // this.isFinished = false
+    //   // this.newsList = []
+    //   // this.getNewsList()
+    // }
   }
 }

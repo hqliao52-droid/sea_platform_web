@@ -5,7 +5,8 @@
       <view class="logo">
       </view>
       <view class="nav-title">Go Global AI</view>
-      <view class="login-btn">登录</view>
+      <view class="login-btn" v-if="!nickName || nickName === '未登录'" @click="goToLogin">登录</view>
+      <view class="login-btn" v-else>欢迎您，{{ nickName }}！</view>
     </view>
 
     <!-- 今日热词概览 -->
@@ -25,10 +26,18 @@
 
     <!-- 分类标签栏 -->
     <view class="category-bar">
-      <view class="category-item active" @click="switchCategory('all')">
+      <view class="category-item"
+        :class="{ 'active': currentCategoryId === 'all' }" 
+        @click="switchCategory('all')">
         全部
       </view>
-      <view class="category-item" v-for="item in categories" :key="item.id" @click="switchCategory(item)">
+      <view 
+        class="category-item" 
+        v-for="item in categories" 
+        :key="item.id" 
+        :class="{ 'active': currentCategoryId === item.id }"
+        @click="switchCategory(item)"
+      >
         {{ item.tag_name }}
       </view>
     </view>
