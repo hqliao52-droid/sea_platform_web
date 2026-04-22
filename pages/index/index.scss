@@ -88,11 +88,27 @@
     }
   }
 
-  .category-bar {
-    display: flex;
-    gap: 20rpx;
+  .category-tit {
+    width: 100%; 
+    
+    /* 标题样式优化 */
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10rpx;
+    display: block;
+    margin-left: 5%;
+  }
+  // 双行滑动分类
+  .category-scroll {
+    white-space: nowrap;
     padding: 0 30rpx 20rpx;
-    overflow-y: auto;
+
+    .category-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20rpx;
+    width: max-content;
 
     .category-item {
       padding: 16rpx 32rpx;
@@ -101,6 +117,7 @@
       color: #666;
       background-color: #f5f5f5;
       white-space: nowrap;
+      margin-bottom: 20rpx; // 行间距
 
       &.active {
         background-color: #007aff;
@@ -108,6 +125,8 @@
       }
     }
   }
+  }
+  
 
   .info-card {
     display: flex;

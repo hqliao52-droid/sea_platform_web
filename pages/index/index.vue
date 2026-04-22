@@ -25,22 +25,27 @@
     </view>
 
     <!-- 分类标签栏 -->
-    <view class="category-bar">
-      <view class="category-item"
-        :class="{ 'active': currentCategoryId === 'all' }" 
-        @click="switchCategory('all')">
-        全部
-      </view>
-      <view 
-        class="category-item" 
-        v-for="item in categories" 
-        :key="item.id" 
-        :class="{ 'active': currentCategoryId === item.id }"
-        @click="switchCategory(item)"
-      >
-        {{ item.tag_name }}
-      </view>
+    <view class="category-tit" style="margin-bottom: 10rpx;font-size: 30rpx;font-weight: 600;">
+      <text>全部分类</text>  
     </view>
+    <scroll-view class="category-scroll" scroll-x="true" show-scrollbar="false">
+      <view class="category-bar">
+        <view class="category-item"
+          :class="{ 'active': currentCategoryId === 'all' }" 
+          @click="switchCategory('all')">
+          全部
+        </view>
+        <view 
+          class="category-item" 
+          v-for="item in categories" 
+          :key="item.id" 
+          :class="{ 'active': currentCategoryId === item.id }"
+          @click="switchCategory(item)"
+        >
+          {{ item.tag_name }}
+        </view>
+      </view>
+    </scroll-view>
 
     <!-- 定制化情报推送 -->
     <view class="info-card">
