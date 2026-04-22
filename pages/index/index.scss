@@ -92,7 +92,7 @@
     display: flex;
     gap: 20rpx;
     padding: 0 30rpx 20rpx;
-    overflow-x: auto;
+    overflow-y: auto;
 
     .category-item {
       padding: 16rpx 32rpx;
@@ -338,5 +338,6 @@
       background-color: rgba(0, 122, 255, 1);
       transform: scale(0.95);
     }
+    
   }
 }
