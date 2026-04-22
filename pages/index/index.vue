@@ -6,7 +6,7 @@
       </view>
       <view class="nav-title">Go Global AI</view>
       <view class="login-btn" v-if="!nickName || nickName === '未登录'" @click="goToLogin">登录</view>
-      <view class="login-btn" v-else>欢迎您，{{ nickName }}！</view>
+      <view class="login-btn" v-else>欢迎您<br>{{ nickName }}！</view>
     </view>
 
     <!-- 今日热词概览 -->
