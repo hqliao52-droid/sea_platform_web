@@ -24,7 +24,8 @@
     {
       "path": "pages/ai-chat/ai-chat", 
       "style": {
-        "navigationBarTitleText": "AI问答"
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom" 
       }
     },
     {

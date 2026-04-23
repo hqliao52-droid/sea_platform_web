@@ -2,7 +2,7 @@
 
 // 这里改成你电脑的局域网 IP + FastAPI 端口
 // 注意：如果在真机调试，127.0.0.1 指的是手机本身，请改为电脑的局域网 IP (如 192.168.x.x)
-const baseURL = 'http://127.0.0.1:8000'
+const baseURL = 'http://192.168.110.218:8000'
 
 export function request(options) {
   return new Promise((resolve, reject) => {
