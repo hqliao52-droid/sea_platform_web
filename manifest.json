@@ -89,6 +89,11 @@
                     "serviceHost" : ""
                 }
             }
+        },
+        "devServer": {
+            "port": 8081,
+            "disableHostCheck": true,
+            "host": "0.0.0.0" 
         }
     }
 }

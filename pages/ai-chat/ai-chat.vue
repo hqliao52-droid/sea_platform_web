@@ -3,18 +3,21 @@
     <!-- 顶部导航栏 -->
     <view class="navbar">
       <view class="nav-left">
-        <view class="logo"></view>
+        <view class="tit_liner" @click="getSessions">
+          <image class="tit_liner_img" src="/static/liner.png" mode="aspectFill"></image>
+        </view>
       </view>
       <view class="nav-title">AI 战略助手</view>
-      <view class="nav-right">
-        <view class="pro-tag">Pro 企业版</view>
+      <view class="nav-right" @click="newSession">
+        <image v-if="newSessionWindowLoading === true" class="new-session" src="/static/new_session.png" mode="aspectFill"></image>
+        <view v-else>加载中...</view>
       </view>
     </view>
 
     <!-- 聊天列表区域 -->
     <scroll-view class="chat-content" scroll-y>
       <!-- 时间分隔线 -->
-      <view class="time-divider">今天 10:00</view>
+      <view class="time-divider"></view>
 
       <!-- 聊天消息列表 -->
       <view v-for="(msg, index) in messageList" :key="index" class="message-item" :class="{ 'user-msg': msg.type === 'user', 'ai-msg': msg.type === 'ai' }">
@@ -66,7 +69,10 @@
           <image v-bind:src="avatar" mode="aspectFill"></image>
         </view>
       </view>
+    </scroll-view>
 
+    <!-- 底部输入区域 -->
+    <view class="input-area">
       <!-- 常用查询标签 -->
       <view class="quick-query">
         <view class="query-title">常用查询</view>
@@ -74,10 +80,6 @@
           <view v-for="tag in quickTags" :key="tag" class="tag">{{ tag }}</view>
         </view>
       </view>
-    </scroll-view>
-
-    <!-- 底部输入区域 -->
-    <view class="input-area">
       <view class="input-tools">
         <view class="tool-item">
           <image src="/static/clip.png" mode="aspectFit"></image>
@@ -95,6 +97,46 @@
       </view>
       <view class="disclaimer">AI 生成内容仅供参考，请结合当地法律顾问意见。</view>
     </view>
+
+    <!-- 侧边栏内容 -->
+    <view 
+      class="sidebar-container" 
+      :class="{ 'sidebar-open': showSidebar }"
+    >
+      <!-- 蒙版 -->
+      <view
+        class="sidebar-mask" 
+        :class="{ 'show': showSidebar }"
+        @click="closeSidebar"
+      >
+      </view>
+      
+      <view class="sidebar-header">
+        <view class="sidebar-close" @click="closeSidebar">
+          <image class="close-btn" src="/static/close-btn.png" mode="aspectFit"></image>
+        </view>
+        <text class="sidebar-title">历史会话</text>
+      </view>
+      
+      <scroll-view class="sidebar-content" scroll-y>
+        <view v-if="groupedSessions.length === 0" class="empty-tip">暂无历史会话</view>
+        
+        <view v-for="(group, gIndex) in groupedSessions" :key="gIndex" class="date-group">
+          <view class="date-label">{{ group.label }}</view>
+          <view 
+            v-for="(session, sIndex) in group.items" 
+            :key="session.id" 
+            class="session-item"
+            @click="selectSession(session)"
+          >
+            <text class="session-topic">{{ session.session_topic || '未命名会话' }}</text>
+            <text class="session-time">{{ formatTimeShort(session.update_time) }}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+
   </view>
 </template>
 

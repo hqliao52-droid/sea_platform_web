@@ -34,9 +34,9 @@ export default {
     uploadAvatar(filePath) {
       uni.showLoading({ title: '上传中...' })
 
-      // 【重点】上传文件 不要手动加 header！！！
+      // 上传文件 不要手动加 header！！！
       uni.uploadFile({
-        url: 'http://127.0.0.1:8000/file/upload_file',
+        url: 'http://192.168.110.218:8000/file/upload_file',
         filePath: filePath,
         name: 'file',
         method: 'POST',

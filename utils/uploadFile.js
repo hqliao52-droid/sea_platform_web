@@ -45,7 +45,7 @@ function uploadSingleFile(filePath) {
         uni.showLoading({ title: '上传中...' })
 
         uni.uploadFile({
-            url: 'http://127.0.0.1:8000/file/upload_file',
+            url: 'http://192.168.110.218:8000/file/upload_file',
             filePath: filePath,
             name: 'file',
             method: 'POST',
@@ -98,7 +98,7 @@ export async function uploadSingleSpeciallyFile(filePath) {
         uni.showLoading({ title: '上传中...' })
 
         uni.uploadFile({
-            url: 'http://127.0.0.1:8000/file/upload_file',
+            url: 'http://192.168.110.218:8000/file/upload_file',
             filePath: filePath,
             name: 'file',
             method: 'POST',
