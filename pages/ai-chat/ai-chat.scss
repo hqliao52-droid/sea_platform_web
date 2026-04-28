@@ -86,37 +86,56 @@
 
     .message-item {
       display: flex;
+      flex-direction: row; // 确保横向排列
       margin-bottom: 30rpx;
-      align-items: flex-start; // 统一垂直对齐方式
+      align-items: flex-start;
+      width: 100%;
 
+      // --- AI 消息 (左侧) ---
       &.ai-msg {
-        .bubble-wrapper {
-          margin-left: 20rpx;
+        justify-content: flex-start;
+
+        .avatar {
+          order: 1; // 头像在第1位
+          margin-right: 20rpx;
         }
 
-        .bubble {
-          background-color: #f5f7fa;
-          border-radius: 0 20rpx 20rpx 20rpx;
+        .bubble-wrapper {
+          order: 2; // 气泡在第2位
+          align-items: flex-start; // 内部左对齐
+          
+          .bubble {
+            background-color: #e2e1e2f6;
+            color: #333;
+            border-radius: 4rpx 20rpx 20rpx 20rpx;
+          }
         }
       }
 
+      // --- 用户消息 (右侧) ---
       &.user-msg {
-        /* 移除 row-reverse，改用 justify-content 控制整体位置 */
-        justify-content: flex-end;
+        justify-content: flex-end; // 整体靠右
+
+        .avatar {
+          margin-left: 20rpx; // 头像在右，距离气泡20rpx
+          order: 2; // 确保头像排在最后（最右边）
+        }
 
         .bubble-wrapper {
-          margin-right: 20rpx;
-          align-items: flex-end;
-        }
+          order: 1; // 气泡排在前面
+          align-items: flex-end; // 气泡内部内容靠右对齐
+          margin-left: 0;
+          margin-right: 0;
 
-        .bubble {
-          background-color: #007aff;
-          color: #fff;
-          border-radius: 20rpx 0 20rpx 20rpx;
-        }
-
-        .msg-time {
-          text-align: right;
+          .bubble {
+            background-color: #007aff;
+            color: #fff;
+            border-radius: 20rpx 4rpx 20rpx 20rpx; // 右上角小圆角/直角，模拟指向头像
+          }
+          
+          .msg-time {
+            text-align: right;
+          }
         }
       }
 
@@ -126,6 +145,7 @@
         border-radius: 50%;
         overflow: hidden;
         flex-shrink: 0;
+        background-color: #eee;
 
         image {
           width: 100%;
@@ -133,15 +153,23 @@
         }
       }
 
+       // --- 通用气泡包裹层 ---
       .bubble-wrapper {
         display: flex;
         flex-direction: column;
         max-width: 70%;
 
+        .msg-time {
+          font-size: 24rpx;
+          color: #999;
+          margin-top: 6rpx;
+        }
+
         .bubble {
           padding: 24rpx;
           font-size: 28rpx;
           line-height: 1.6;
+          word-break: break-all; // 防止长文本溢出
 
           .suggestions {
             margin-top: 20rpx;
