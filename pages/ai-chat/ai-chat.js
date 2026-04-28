@@ -8,37 +8,7 @@ export default {
       userInfo: null,
       newSessionWindowLoading: true,
       // 聊天消息列表
-      messageList: [
-        {
-          type: 'ai',
-          content: '您好！我是您的出海战略助手。我已经整合了今日最新的东南亚市场资讯，您可以针对特定国家、行业或合规政策向我提问。',
-          time: '10:00 AM'
-        },
-        {
-          type: 'user',
-          content: '我想了解目前印尼对于跨境电商化妆品准入的最新政策有哪些变化?',
-          time: '10:02 AM'
-        },
-        {
-          type: 'ai',
-          content: '根据最近的监管动态，印尼 BPOM (国家食品药品监督管理局)更新了进口许可证的要求。主要涉及 Halal 认证的强制性执行节点提前。',
-          time: '10:03 AM',
-          suggestions: [
-            '重点关注东南亚电商合规性认证（如 SNI）',
-            '利用当地斋月节点进行社交媒体本土化投放',
-            '建立与当地第三方支付平台（如 ShopeePay）的深度合作'
-          ],
-          sources: [
-            { name: '2024印尼贸易部进口限制命令' },
-            { name: '东南亚美妆市场准入合规手册' }
-          ]
-        },
-        {
-          type: 'user',
-          content: '我想了解目前印尼对于跨境电商化妆品准入的最新政策有哪些变化?',
-          time: '10:02 AM'
-        },
-      ],
+      messageList: [],
       nikeName: '',
       avatar: '',
       // 常用查询标签
@@ -51,13 +21,162 @@ export default {
       // 侧边栏
       showSidebar: false,
       sessionList: [],
-      groupedSessions: []
+      groupedSessions: [],
+
+      inputText:'',
+      currentSessionId: null,
+      isStreaming: false,
+
+      scrollTop: 0, 
     };
   },
   onShow(){
     this.loadUserInfo();
   },
   methods: {
+    // 流式接收 LLM 输出
+    startStream(taskId, aiIndex) {
+      let buffer = "";
+
+      uni.request({
+        url: `/chatMessage/chat_stream/${taskId}`,
+        method: "GET",
+        enableChunkedResponse: true, // 🔥 必须开启
+        responseType: "text",
+
+        onChunkReceived: (res) => {
+          try {
+            // 解码
+            const uint8 = new Uint8Array(res.data);
+            const text = new TextDecoder("utf-8").decode(uint8);
+            buffer += text;
+
+            // 按行解析 SSE
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (let line of lines) {
+              line = line.trim();
+              if (!line || line.startsWith(":")) continue;
+
+              if (line.startsWith("data:")) {
+                let delta = line.replace("data:", "").trim();
+
+                // 结束流
+                if (delta.includes("[[END]]")) {
+                  this.isStreaming = false;
+                  console.log("流结束");
+                  return;
+                }
+
+                // 错误
+                if (delta.includes("[[ERROR]]")) {
+                  this.isStreaming = false;
+                  uni.showToast({ title: '生成失败', icon: 'none' });
+                  return;
+                }
+
+                // 实时追加文字
+                if (delta) {
+                  this.$set(this.messageList[aiIndex], "content", this.messageList[aiIndex].content + delta);
+                  // 每次更新都滚动到底部
+                  this.scrollToBottom();
+                }
+              }
+            }
+          } catch (e) {
+            // 异常不处理
+            console.error('解析流数据出错', e);
+          }
+        },
+
+        success: () => {
+          this.isStreaming = false;
+        },
+
+        fail: (err) => {
+          console.error("流失败", err);
+          this.isStreaming = false;
+          uni.showToast({ title: '网络连接中断', icon: 'none' });
+        }
+      });
+    },
+    // 发送消息 + 接收流式输出
+    async sendMessage() {
+      const content = this.inputText?.trim();
+      if (!content || this.isStreaming) return;
+
+      if (!this.userInfo || !this.userInfo.id) {
+        uni.showToast({ title: '请先登录', icon: 'none' });
+        return;
+      }
+       // 检查会话ID (如果没有，先创建新会话)
+      if (!this.currentSessionId) {
+        await this.newSession();
+        if (!this.currentSessionId) return; // 创建失败则中止
+      }
+
+      // 1. 先加用户消息到列表
+      const userMsg = {
+        role: "user",
+        content: content,
+        created_time: this.formatTimeShort(new Date())
+      };
+      this.messageList.push(userMsg);
+      // this.inputText = "";
+
+      // 2. 加一个空的AI消息（用来流式打字）
+      const aiMsg = {
+        role: "assistant",
+        content: "",
+        created_time: this.formatTimeShort(new Date()),
+        suggestions: [],
+        sources: []
+      };
+      this.messageList.push(aiMsg);
+      const aiIndex = this.messageList.length - 1;
+
+      this.inputText = "";
+      this.isStreaming = true;
+      this.scrollToBottom();
+
+      try {
+        // ======================
+        // 第一步：调用 insert_message 获取 task_id
+        // ======================
+        const res = await request({
+          url: "/chatMessage/insert_message",
+          method: "PUT",
+          data: {
+            "query": content,
+            "user_id": parseInt(this.userInfo.id),
+            "session_id": this.currentSessionId || 0 // 你需要在创建会话时保存 session_id
+          }
+        });
+
+        if (res.code != 200 && res.code !== '200') throw new Error("发送失败");
+
+        const task_id = res.data.task_id;
+        // const ai_msg_id = res.data.ai_msg_id;
+
+        // ======================
+        // 第二步：开始流式接收
+        // ======================
+        this.startStream(task_id, aiIndex);
+
+      } catch (err) {
+        console.error(err);
+        if (err.data) {
+            console.error('后端返回数据:', err.data); 
+            this.isStreaming = false;
+            this.messageList.pop();
+            uni.showToast({ title: err.data.msg || '发送失败', icon: 'none' });
+        } else {
+            uni.showToast({ title: '网络异常或发送失败', icon: 'none' });
+        }
+        this.isStreaming = false;
+      }
+    },
     async loadUserInfo(){
       const userInfo = getUserInfo();
       console.log('用户信息：', userInfo);
@@ -69,6 +188,14 @@ export default {
         // 未登录
         // uni.redirectTo({ url: '/pages/login/login' });
       }
+    },
+    scrollToBottom() {
+      // 强制触发滚动到底部
+      // 技巧：先设为一个小值，再设为极大值，确保触发视图更新和滚动
+      this.scrollTop = this.scrollTop + 1; 
+      setTimeout(() => {
+        this.scrollTop = 999999;
+      }, 10);
     },
     async newSession(){
       this.newSessionWindowLoading = false;
@@ -85,6 +212,7 @@ export default {
         });
 
         if(res.code === 200 || res.code === '200'){
+          this.currentSessionId = res.data.id;
           console.log('新会话返回：', res);
         }else{
           uni.showToast({title: res.msg || '创建新会话失败',icon: 'none'});
@@ -191,9 +319,37 @@ export default {
 
      // --- 点击某个会话 ---
      selectSession(session) {
+      this.currentSessionId = session.id;
       console.log('选中会话:', session);
       // TODO: 这里可以添加跳转逻辑或加载该会话的历史消息
       // 例如: this.loadSessionMessages(session.id);
+
+      if(!this.userInfo || !this.userInfo.id){
+        uni.showToast({title: '请先登录',icon: 'none'});
+        return;
+      }
+
+      try{
+        uni.showLoading({ title: '加载中...' });
+
+        request({
+          url: '/chatMessage/get_by_session_id',
+          method:"GET",
+          data: {session_id: session.id}
+        }).then(res => {
+          if(res.code === 200 || res.code === '200'){
+            console.log('会话消息返回：', res);
+            this.messageList = res.data || [];
+          }else{
+            uni.showToast({title: res.msg || '拉取会话消息失败',icon: 'none'});
+          }
+        })
+      }catch(err){
+        console.error('Get Session Messages Error:', err);
+      }
+      finally{
+        uni.hideLoading();
+      }
       this.closeSidebar();
     },
     formatTimeShort(timeStr) {
