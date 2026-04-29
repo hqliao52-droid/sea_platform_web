@@ -685,12 +685,19 @@ export default {
     scrollToBottom() {
       // 【关键修改】增加延迟，确保 scroll-view 内容高度已计算完毕
       // 特别是在 H5 端，图片加载或富文本渲染可能需要额外时间
-      setTimeout(() => {
-        this.scrollTop = 0; // 先重置为0，触发变化
+        setTimeout(() => {
+        // 第一步：重置（可选，有时直接设大值也可以，但重置更稳妥）
+        this.scrollTop = 0; 
+        
+        // 第二步：在下一个 tick 设置为极大值
         this.$nextTick(() => {
-          this.scrollTop = 999999; // 再设为极大值
+          // 使用 Date.now() 确保每次值都不一样，强制触发更新
+          this.scrollTop = 999999 + Math.random(); 
         });
       }, 100); // 100ms 延迟通常足够让 DOM 渲染完成
+    },
+    onScroll(e){
+      console.log("滚动位置：",e.detail.scrollTop);
     },
     async newSession(){
       this.newSessionWindowLoading = false;

@@ -15,7 +15,14 @@
     </view>
 
     <!-- 聊天列表区域 -->
-    <scroll-view class="chat-content" scroll-y :scroll-top="scrollTop" scroll-with-animation @scroll="onScroll">
+    <scroll-view 
+      id="chat-scroll-view" 
+      class="chat-content" 
+      scroll-y 
+      :scroll-top="scrollTop" 
+      scroll-with-animation 
+      @scroll="onScroll"
+    >
       <view class="time-divider">今天</view>
 
       <view v-for="(msg, index) in messageList" :key="index" class="message-item" :class="{ 'user-msg': msg.role === 'user', 'ai-msg': msg.role === 'assistant' }">
