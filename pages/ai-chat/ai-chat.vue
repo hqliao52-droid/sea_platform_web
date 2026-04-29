@@ -15,7 +15,7 @@
     </view>
 
     <!-- 聊天列表区域 -->
-    <scroll-view class="chat-content" scroll-y :scroll-top="scrollTop" scroll-with-animation>
+    <scroll-view class="chat-content" scroll-y :scroll-top="scrollTop" scroll-with-animation @scroll="onScroll">
       <view class="time-divider">今天</view>
 
       <view v-for="(msg, index) in messageList" :key="index" class="message-item" :class="{ 'user-msg': msg.role === 'user', 'ai-msg': msg.role === 'assistant' }">
@@ -28,8 +28,15 @@
         <!-- 消息气泡 -->
         <view class="bubble-wrapper">
           <view class="bubble">
-            <!-- 关键点：直接渲染 content，Vue 会自动更新 -->
-            <text class="bubble-text">{{ msg.content }}</text>
+            <!-- assistant：渲染 Markdown（加粗/换行/列表）富文本 -->
+            <u-parse
+              v-if="msg.role === 'assistant'"
+              :content="msg.renderedHtml || ''"
+              :tag-style="bubbleTagStyle"
+            />
+
+            <!-- user：保持纯文本显示 -->
+            <text v-else class="bubble-text">{{ msg.content }}</text>
             
             <!-- 流式加载时的光标动画 (可选) -->
             <text v-if="msg.role === 'assistant' && isStreaming && index === messageList.length - 1 && msg.content" class="cursor">|</text>
@@ -78,7 +85,7 @@
     <!-- 底部输入区域 -->
     <view class="input-area">
 
-      <view class="test-btn" @click="testUpdate">测试更新</view>
+      <!-- <view class="test-btn" @click="testUpdate">测试更新</view> -->
       <view class="quick-query">
         <view class="query-title">常用查询</view>
         <view class="query-tags">
