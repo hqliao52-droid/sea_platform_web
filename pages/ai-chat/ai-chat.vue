@@ -21,7 +21,7 @@
       <view v-for="(msg, index) in messageList" :key="index" class="message-item" :class="{ 'user-msg': msg.role === 'user', 'ai-msg': msg.role === 'assistant' }">
         
         <!-- AI头像 -->
-        <view v-if="msg.role === 'ai'" class="avatar ai-avatar">
+        <view v-if="msg.role === 'assistant'" class="avatar ai-avatar">
           <image src="/static/ai-active.png" mode="aspectFill"></image>
         </view>
 
@@ -32,10 +32,11 @@
             <text class="bubble-text">{{ msg.content }}</text>
             
             <!-- 流式加载时的光标动画 (可选) -->
-            <text v-if="msg.role === 'ai' && isStreaming && index === messageList.length - 1 && !msg.content" class="cursor">|</text>
+            <text v-if="msg.role === 'assistant' && isStreaming && index === messageList.length - 1 && msg.content" class="cursor">|</text>
+            <text v-else-if="msg.role === 'assistant' && isStreaming && index === messageList.length - 1 && !msg.content" class="cursor blinking">|</text>
 
             <!-- 策略建议 (流式结束后显示) -->
-            <view v-if="msg.role === 'ai' && msg.suggestions && msg.suggestions.length" class="suggestions">
+            <view v-if="msg.role === 'assistant' && msg.suggestions && msg.suggestions.length" class="suggestions">
               <view class="suggest-title">策略建议</view>
               <view class="suggest-list">
                 <view v-for="(item, i) in msg.suggestions" :key="i" class="suggest-item">• {{ item }}</view>
@@ -43,7 +44,7 @@
             </view>
             
             <!-- 引用来源 -->
-            <view v-if="msg.role === 'ai' && msg.sources && msg.sources.length" class="sources">
+            <view v-if="msg.role === 'assistant' && msg.sources && msg.sources.length" class="sources">
               <view class="source-title">引用来源</view>
               <view v-for="(source, i) in msg.sources" :key="i" class="source-item">
                 <image src="/static/file-icon.png" mode="aspectFit"></image>
@@ -53,7 +54,7 @@
           </view>
 
           <!-- 操作栏 -->
-          <view v-if="msg.role === 'ai' && !isStreaming" class="msg-action">
+          <view v-if="msg.role === 'assistant' && !isStreaming" class="msg-action">
             <view class="action-btn">
               <image src="/static/save.png" mode="aspectFit"></image>
               <text>保存</text>
@@ -76,6 +77,8 @@
 
     <!-- 底部输入区域 -->
     <view class="input-area">
+
+      <view class="test-btn" @click="testUpdate">测试更新</view>
       <view class="quick-query">
         <view class="query-title">常用查询</view>
         <view class="query-tags">

@@ -1,6 +1,5 @@
 import {request} from '@/utils/request.js';
 import { getUserInfo } from '@/utils/user.js';
-import avatar from 'uview-ui/libs/config/props/avatar';
 
 export default {
   data() {
@@ -34,72 +33,116 @@ export default {
     this.loadUserInfo();
   },
   methods: {
+    testUpdate() {
+      // 测试响应式更新
+      if (this.messageList.length > 0) {
+        const lastMsg = this.messageList[this.messageList.length - 1];
+        if (lastMsg.role === 'assistant') {
+          lastMsg.content += '测试文本';
+          this.$forceUpdate();
+          console.log('测试更新后的内容:', lastMsg.content);
+        }
+      }
+    },
     // 流式接收 LLM 输出
     startStream(taskId, aiIndex) {
+      const that = this;  // 关键：保存 Vue 实例
       let buffer = "";
+      let contentUpdateCount = 0;
+      
+      if (!this.messageList[aiIndex]) {
+        console.error('AI消息对象不存在, aiIndex:', aiIndex);
+        return;
+      }
 
-      uni.request({
+      console.log('开始流式接收, taskId:', taskId, 'aiIndex:', aiIndex);
+
+      const requestTask = uni.request({
         url: `/chatMessage/chat_stream/${taskId}`,
         method: "GET",
-        enableChunkedResponse: true, // 🔥 必须开启
+        enableChunkedResponse: true,
         responseType: "text",
-
+        header: {
+          'Accept': 'text/event-stream'
+        },
         onChunkReceived: (res) => {
+          // 这里已经是箭头函数，但为了安全，使用 that
           try {
-            // 解码
+            console.log('收到数据块'); // 检查是否进入回调
+            
             const uint8 = new Uint8Array(res.data);
             const text = new TextDecoder("utf-8").decode(uint8);
             buffer += text;
-
-            // 按行解析 SSE
+            
             const lines = buffer.split("\n");
             buffer = lines.pop() || "";
-
+            
             for (let line of lines) {
               line = line.trim();
               if (!line || line.startsWith(":")) continue;
-
+              
               if (line.startsWith("data:")) {
-                let delta = line.replace("data:", "").trim();
-
-                // 结束流
+                // 兼容 data: 后面可能有空格的情况
+                let delta = line.substring(5).trim();
+                
                 if (delta.includes("[[END]]")) {
-                  this.isStreaming = false;
-                  console.log("流结束");
+                  that.isStreaming = false;
+                  console.log("流结束，总更新次数:", contentUpdateCount);
+                  that.$forceUpdate();
                   return;
                 }
-
-                // 错误
+                
                 if (delta.includes("[[ERROR]]")) {
-                  this.isStreaming = false;
+                  that.isStreaming = false;
                   uni.showToast({ title: '生成失败', icon: 'none' });
+                  if (that.messageList[aiIndex] && !that.messageList[aiIndex].content) {
+                    that.messageList.splice(aiIndex, 1);
+                  }
+                  that.$forceUpdate();
                   return;
                 }
-
-                // 实时追加文字
-                if (delta) {
-                  this.$set(this.messageList[aiIndex], "content", this.messageList[aiIndex].content + delta);
-                  // 每次更新都滚动到底部
-                  this.scrollToBottom();
+                
+                if (delta && delta !== '') {
+                  contentUpdateCount++;
+                  if (!that.messageList[aiIndex]) {
+                    console.error('AI消息对象在更新时丢失');
+                    return;
+                  }
+                  
+                  const currentContent = that.messageList[aiIndex].content || '';
+                  const newContent = currentContent + delta;
+                  that.$set(that.messageList[aiIndex], 'content', newContent);
+                  console.log(`更新 #${contentUpdateCount}:`, delta, '当前长度:', newContent.length);
+                  that.scrollToBottom();
                 }
               }
             }
           } catch (e) {
-            // 异常不处理
             console.error('解析流数据出错', e);
           }
         },
-
         success: () => {
-          this.isStreaming = false;
+          that.isStreaming = false;
+          console.log('流请求完成');
+          if (buffer && buffer.trim() && !buffer.includes("[[END]]")) {
+            const currentContent = that.messageList[aiIndex]?.content || '';
+            that.$set(that.messageList[aiIndex], 'content', currentContent + buffer);
+            that.$forceUpdate();
+          }
+          that.scrollToBottom();
         },
-
         fail: (err) => {
           console.error("流失败", err);
-          this.isStreaming = false;
+          that.isStreaming = false;
           uni.showToast({ title: '网络连接中断', icon: 'none' });
+          if (that.messageList[aiIndex] && !that.messageList[aiIndex].content) {
+            that.messageList.splice(aiIndex, 1);
+            that.$forceUpdate();
+          }
         }
       });
+      
+      return requestTask;
     },
     // 发送消息 + 接收流式输出
     async sendMessage() {
@@ -110,7 +153,8 @@ export default {
         uni.showToast({ title: '请先登录', icon: 'none' });
         return;
       }
-       // 检查会话ID (如果没有，先创建新会话)
+      
+      // 检查会话ID (如果没有，先创建新会话)
       if (!this.currentSessionId) {
         await this.newSession();
         if (!this.currentSessionId) return; // 创建失败则中止
@@ -123,9 +167,9 @@ export default {
         created_time: this.formatTimeShort(new Date())
       };
       this.messageList.push(userMsg);
-      // this.inputText = "";
-
-      // 2. 加一个空的AI消息（用来流式打字）
+      
+      // 2. 加一个空的AI消息（用来流式打字）- 关键：使用 $set 确保响应式
+      const aiMsgIndex = this.messageList.length;
       const aiMsg = {
         role: "assistant",
         content: "",
@@ -134,47 +178,43 @@ export default {
         sources: []
       };
       this.messageList.push(aiMsg);
-      const aiIndex = this.messageList.length - 1;
+      
+      // 确保 AI 消息是响应式的
+      this.$set(this.messageList, aiMsgIndex, aiMsg);
+      
+      const aiIndex = aiMsgIndex; // 保存索引供后续使用
 
       this.inputText = "";
       this.isStreaming = true;
       this.scrollToBottom();
 
       try {
-        // ======================
-        // 第一步：调用 insert_message 获取 task_id
-        // ======================
+        // 调用 insert_message 获取 task_id
         const res = await request({
           url: "/chatMessage/insert_message",
           method: "PUT",
           data: {
             "query": content,
             "user_id": parseInt(this.userInfo.id),
-            "session_id": this.currentSessionId || 0 // 你需要在创建会话时保存 session_id
+            "session_id": this.currentSessionId || 0
           }
         });
 
         if (res.code != 200 && res.code !== '200') throw new Error("发送失败");
 
         const task_id = res.data.task_id;
-        // const ai_msg_id = res.data.ai_msg_id;
-
-        // ======================
-        // 第二步：开始流式接收
-        // ======================
+        
+        // 开始流式接收
         this.startStream(task_id, aiIndex);
 
       } catch (err) {
         console.error(err);
-        if (err.data) {
-            console.error('后端返回数据:', err.data); 
-            this.isStreaming = false;
-            this.messageList.pop();
-            uni.showToast({ title: err.data.msg || '发送失败', icon: 'none' });
-        } else {
-            uni.showToast({ title: '网络异常或发送失败', icon: 'none' });
-        }
         this.isStreaming = false;
+        // 移除失败的 AI 消息
+        if (this.messageList[aiIndex]) {
+          this.messageList.splice(aiIndex, 1);
+        }
+        uni.showToast({ title: err.data?.msg || '发送失败', icon: 'none' });
       }
     },
     async loadUserInfo(){
@@ -190,12 +230,15 @@ export default {
       }
     },
     scrollToBottom() {
-      // 强制触发滚动到底部
-      // 技巧：先设为一个小值，再设为极大值，确保触发视图更新和滚动
-      this.scrollTop = this.scrollTop + 1; 
-      setTimeout(() => {
-        this.scrollTop = 999999;
-      }, 10);
+      // 使用 $nextTick 确保 DOM 更新后再滚动
+      this.$nextTick(() => {
+        // 增加一点延迟，确保内容渲染完成
+        setTimeout(() => {
+          this.scrollTop = 999999;
+        }, 50);
+        // 删除下面这行错误代码
+        // console.log('DOM更新后的内容:', this.messageList[aiIndex].content);
+      });
     },
     async newSession(){
       this.newSessionWindowLoading = false;

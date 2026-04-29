@@ -16,6 +16,12 @@
             "autoclose" : true,
             "delay" : 0
         },
+        "networkTimeout": {
+            "request": 60000,
+            "connectSocket": 60000,
+            "uploadFile": 60000,
+            "downloadFile": 60000
+        },
         /* 模块配置 */
         "modules" : {
             "Geolocation" : {}
@@ -91,9 +97,23 @@
             }
         },
         "devServer": {
-            "port": 8081,
-            "disableHostCheck": true,
-            "host": "0.0.0.0" 
+        "port": 8081,
+        "disableHostCheck": true,
+        "proxy": {
+            "/chatMessage": {
+            "target": "http://192.168.110.218:8000", // 【关键】这里填你真实的后端地址
+            "changeOrigin": true,
+            "secure": false,
+            "pathRewrite": {
+                "^/chatMessage": "/chatMessage" // 保持路径不变，或者根据后端需求调整
+            }
+            },
+            "/session": {
+            "target": "http://192.168.110.218:8000", // 如果会话接口也在同一个后端
+            "changeOrigin": true,
+            "secure": false
+            }
+        }
         }
     }
 }
