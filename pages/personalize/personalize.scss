@@ -1,0 +1,475 @@
+.container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #333;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30rpx;
+
+    .back-btn {
+      width: 40rpx;
+      height: 40rpx;
+
+      image {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .title {
+      font-size: 34rpx;
+      font-weight: bold;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+
+      .text {
+        font-size: 24rpx;
+        color: #666;
+        text-align: right;
+        margin-right: 10rpx;
+      }
+
+      .avatar {
+        width: 60rpx;
+        height: 60rpx;
+        border-radius: 50%;
+        background-color: #eee;
+      }
+    }
+  }
+
+  .title-section {
+    margin-bottom: 30rpx;
+    width: 100%;
+    height: 200rpx;
+    border-radius: 15rpx;
+    background: url("/static/personalize.png") no-repeat center center; 
+    background-size: cover; 
+    overflow: hidden; 
+
+    .main-title {
+      font-size: 44rpx;
+      font-weight: bold;
+      margin-top: 20rpx;
+      margin-left: 20rpx;
+      margin-bottom: 10rpx;
+    }
+
+    .sub-title {
+      font-size: 26rpx;
+      color: #666;
+      margin-bottom: 20rpx;
+      margin-left: 20rpx;
+    }
+  }
+
+  .card {
+    background-color: #fff;
+    border-radius: 20rpx;
+    padding: 30rpx;
+    margin-bottom: 20rpx;
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      font-size: 30rpx;
+      font-weight: bold;
+      margin-bottom: 30rpx;
+
+      image {
+        width: 36rpx;
+        height: 36rpx;
+        margin-right: 10rpx;
+      }
+    }
+
+    .sub-hint {
+      font-size: 24rpx;
+      color: #999;
+      margin-bottom: 30rpx;
+    }
+
+    .form-item {
+      margin-bottom: 30rpx;
+      position: relative;
+      .row-container {
+        display: flex;
+        justify-content: space-between; // 两端对齐：标题在左，计数器在右
+        align-items: center; // 垂直居中
+        width: 100%;
+      }
+
+      .label {
+        font-size: 28rpx;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+
+        .icon-info {
+          color: #999;
+          margin-left: 6rpx;
+          &.clickable {
+            cursor: pointer;
+            transition: color 0.2s;
+            
+            &:active {
+              color: #4080ff; // 点击时变色反馈
+            }
+          }
+        }
+      }
+
+      .input-group {
+        display: flex;
+        align-items: center;
+        white-space: nowrap; 
+
+        .btn-minus,
+        .btn-plus {
+          width: 60rpx;
+          height: 60rpx;
+          background-color: #f0f5ff;
+          color: #4080ff;
+          border: none;
+          border-radius: 8rpx;
+          font-size: 32rpx;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0; 
+          line-height: 1;
+        }
+
+        .input-num {
+          width: 120rpx;
+          height: 60rpx;
+          background-color: #fff;
+          border: 2rpx solid #eee;
+          margin: 0 10rpx;
+          border-radius: 8rpx;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 30rpx;
+          flex-shrink: 0;
+        }
+
+        .unit {
+          margin-left: 10rpx;
+          font-size: 26rpx;
+          color: #666;
+        }
+      }
+      .hint-row {
+        position: absolute;
+        top: 100%;
+        // left: auto;
+        right: 0;  
+        z-index: 100;
+        margin-top: 8rpx;
+        width: auto;
+        animation: fadeIn 0.2s ease-in-out;
+
+        .hint-text {
+          display: inline-block;
+          background-color: #333; // 深色背景更像提示气泡
+          color: #fff;
+          font-size: 24rpx;
+          padding: 10rpx 16rpx;
+          border-radius: 8rpx;
+          white-space: nowrap; // 防止换行
+          box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15); // 增加阴影提升层次感
+          position: relative;
+
+          &::before {
+            content: "";
+            position: absolute;
+            bottom: 100%; // 在气泡上方
+            left: 24rpx;  // 箭头距离左侧的位置（对应图标位置）
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 10rpx 10rpx 10rpx; // 下、右、上、左
+            border-color: transparent transparent #333 transparent; // 只有上方有颜色
+          }
+        }
+      }
+
+      .hint {
+        font-size: 24rpx;
+        color: #999;
+        margin-top: 10rpx;
+      }
+
+      .tag-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10rpx;
+        align-items: center;
+
+        .tag {
+          background-color: #e8f0ff;
+          color: #4080ff;
+          padding: 8rpx 16rpx;
+          border-radius: 20rpx;
+          font-size: 24rpx;
+          display: flex;
+          align-items: center;
+
+          .tag-close {
+            margin-left: 8rpx;
+            font-size: 28rpx;
+            color: #999;
+          }
+        }
+
+        .select-box {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          height: 60rpx;
+          border: 2rpx solid #eee;
+          border-radius: 8rpx;
+          padding: 0 16rpx;
+          margin-top: 10rpx;
+
+          image {
+            width: 24rpx;
+            height: 24rpx;
+          }
+        }
+      }
+
+      .input-field,
+      .input-code {
+        width: 100%;
+        height: 60rpx;
+        border: 2rpx solid #eee;
+        border-radius: 8rpx;
+        padding: 0 16rpx;
+        font-size: 26rpx;
+      }
+
+      .code-group {
+        display: flex;
+        gap: 10rpx;
+
+        .input-code {
+          flex: 1;
+        }
+
+        .btn-code {
+          width: 160rpx;
+          height: 60rpx;
+          background-color: #4080ff;
+          color: #fff;
+          border: none;
+          border-radius: 8rpx;
+          font-size: 24rpx;
+        }
+      }
+    }
+
+    .slider-group {
+      .slider-item {
+        margin-bottom: 30rpx;
+
+        .slider-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10rpx;
+
+          .slider-title {
+            display: flex;
+            align-items: center;
+
+            image {
+              width: 40rpx;
+              height: 40rpx;
+              margin-right: 10rpx;
+            }
+          }
+
+          .slider-value {
+            font-size: 26rpx;
+            color: #666;
+          }
+        }
+
+        .custom-slider {
+          width: 100%;
+        }
+      }
+    }
+
+    .reset-btn {
+      display: flex;
+      align-items: center;
+      color: #4080ff;
+      font-size: 26rpx;
+
+      image {
+        width: 28rpx;
+        height: 28rpx;
+        margin-right: 6rpx;
+      }
+    }
+  }
+
+  .preview-card {
+    background-color: #f0f5ff;
+    border-radius: 20rpx;
+    padding: 30rpx;
+    margin-bottom: 20rpx;
+
+    .preview-title {
+      display: flex;
+      align-items: center;
+      font-size: 28rpx;
+      font-weight: bold;
+      margin-bottom: 10rpx;
+
+      image {
+        width: 36rpx;
+        height: 36rpx;
+        margin-right: 10rpx;
+      }
+    }
+
+    .preview-sub {
+      font-size: 24rpx;
+      color: #666;
+      margin-bottom: 20rpx;
+    }
+
+    .preview-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10rpx;
+      margin-bottom: 20rpx;
+
+      .preview-tag {
+        background-color: #fff;
+        color: #4080ff;
+        padding: 8rpx 16rpx;
+        border-radius: 20rpx;
+        font-size: 24rpx;
+      }
+
+      .more {
+        color: #999;
+      }
+    }
+
+    .view-example {
+      text-align: right;
+      color: #4080ff;
+      font-size: 26rpx;
+    }
+  }
+
+  .tip-card {
+    background-color: #f0f5ff;
+    border-radius: 20rpx;
+    padding: 30rpx;
+    margin-bottom: 40rpx;
+    display: flex;
+    align-items: flex-start;
+
+    image {
+      width: 36rpx;
+      height: 36rpx;
+      margin-right: 16rpx;
+      margin-top: 4rpx;
+    }
+
+    .tip-text {
+      display: flex;
+      flex-direction: column;
+
+      .tip-title {
+        font-size: 28rpx;
+        font-weight: bold;
+        margin-bottom: 6rpx;
+      }
+
+      .tip-content {
+        font-size: 24rpx;
+        color: #666;
+        line-height: 1.5;
+      }
+    }
+  }
+
+  .save-btn {
+    width: 100%;
+    height: 80rpx;
+    background-color: #4080ff;
+    color: #fff;
+    border-radius: 40rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30rpx;
+    font-weight: bold;
+    margin-bottom: 40rpx;
+  }
+
+  // 弹窗样式
+  .uni-popup {
+    .popup-content {
+      background-color: #fff;
+      border-radius: 20rpx 20rpx 0 0;
+      padding: 30rpx;
+
+      .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 30rpx;
+        font-weight: bold;
+        margin-bottom: 30rpx;
+
+        .clear-btn {
+          color: #4080ff;
+          font-size: 26rpx;
+        }
+      }
+
+      .popup-list {
+        .popup-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 20rpx;
+          font-size: 28rpx;
+
+          checkbox {
+            margin-right: 16rpx;
+          }
+        }
+
+        .more-btn {
+          color: #666;
+          font-size: 26rpx;
+          text-align: center;
+          margin-top: 20rpx;
+        }
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}

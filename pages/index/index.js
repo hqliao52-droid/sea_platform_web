@@ -21,6 +21,8 @@ export default {
 
       // 控制 UI 高亮的当前选中 ID，初始为 'all' 或 null
       currentCategoryId: 'all', 
+
+      articleInfo: null,
       
     }
   },
@@ -181,7 +183,11 @@ export default {
         console.error("请求分类失败", err)
       }
     },
-
+    goToPersonalize() {
+      uni.navigateTo({
+        url: '/pages/personalize/personalize'
+      });
+    },
     toDetail(item) {
       uni.navigateTo({
         url: `/pages/news_detail/news_detail?id=${item.id}`,

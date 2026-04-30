@@ -15,14 +15,7 @@
     </view>
 
     <!-- 聊天列表区域 -->
-    <scroll-view 
-      id="chat-scroll-view" 
-      class="chat-content" 
-      scroll-y 
-      :scroll-top="scrollTop" 
-      scroll-with-animation 
-      @scroll="onScroll"
-    >
+    <scroll-view class="chat-content" scroll-y :scroll-top="scrollTop" scroll-with-animation>
       <view class="time-divider">今天</view>
 
       <view v-for="(msg, index) in messageList" :key="index" class="message-item" :class="{ 'user-msg': msg.role === 'user', 'ai-msg': msg.role === 'assistant' }">
@@ -92,7 +85,31 @@
     <!-- 底部输入区域 -->
     <view class="input-area">
 
-      <!-- <view class="test-btn" @click="testUpdate">测试更新</view> -->
+      <view class="recent-read-section" v-if="recentHistory.length > 0">
+        
+        <!-- 标题栏：包含标题和切换按钮 -->
+        <view class="section-header" @click="toggleHistory">
+          <view class="section-title">最近阅读</view>
+          <!-- 箭头图标：根据状态旋转 -->
+          <text class="toggle-icon" :class="{ 'expanded': isHistoryExpanded }">﹀</text>
+        </view>
+
+        <!-- 内容区域：使用 max-height 实现动画效果 -->
+        <view class="history-list-wrapper" :class="{ 'expanded': isHistoryExpanded }">
+          <view class="history-list">
+            <view 
+              class="history-item" 
+              v-for="(item, index) in recentHistory" 
+              :key="item.id"
+              @click="inputText = item.content"
+            >
+              <text class="history-title">{{ item.title }}</text>
+              <text class="history-source">{{ item.rss_tag }}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
       <view class="quick-query">
         <view class="query-title">常用查询</view>
         <view class="query-tags">
@@ -102,14 +119,16 @@
       
       <view class="input-box">
         <!-- 关键点：绑定 v-model -->
-        <input 
+        <textarea 
           v-model="inputText" 
-          type="text" 
           placeholder="输入出海咨询问题..." 
-          class="input" 
+          class="input-textarea" 
+          :auto-height="true" 
+          :show-confirm-bar="false"
           confirm-type="send"
           @confirm="sendMessage"
-        />
+          @input="onInput"
+        ></textarea>
         <view class="send-btn" @click="sendMessage">
           <image src="/static/send.png" mode="aspectFit"></image>
         </view>
