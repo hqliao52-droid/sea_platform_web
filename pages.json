@@ -46,7 +46,15 @@
         "navigationBarTitleText": "浏览网页",
         "navigationStyle": "default" 
       }
-    }
+    },
+    {
+      "path": "pages/personalize/personalize",
+      "style": {
+        "navigationBarTitleText": "定制化情报",
+        "onReachBottomDistance": 50,
+        "enablePullDownRefresh": false
+      }
+}
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

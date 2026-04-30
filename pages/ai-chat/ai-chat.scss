@@ -293,7 +293,6 @@
   /* 底部输入区域 */
   .input-area {
     position: fixed;
-    height: 300rpx;
     left: 0;
     right: 0;
     bottom: 90rpx;
@@ -301,6 +300,118 @@
     padding: 20rpx 30rpx;
     border-top: 1rpx solid #eee;
     background-color: #fff;
+    min-height: 300rpx;
+    max-height: 60vh;
+    transition: height 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    .recent-read-section {
+      margin-bottom: 10rpx;
+      padding: 0 10rpx;
+      
+      /* 【新增】标题栏样式，使其可点击 */
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10rpx;
+        padding-left: 10rpx;
+        cursor: pointer; /* H5端显示手型 */
+        
+        .section-title {
+          font-size: 26rpx;
+          color: #999;
+          display: flex;
+          align-items: center;
+
+          &::before {
+            content: '';
+            display: inline-block;
+            width: 6rpx;
+            height: 26rpx;
+            background-color: #007aff;
+            margin-right: 12rpx;
+            border-radius: 4rpx;
+          }
+        }
+
+        /* 【新增】箭头图标样式 */
+        .toggle-icon {
+          font-size: 24rpx;
+          color: #999;
+          transition: transform 0.3s ease; /* 旋转动画 */
+          transform: rotate(0deg);
+          
+          /* 展开时旋转180度变成 ^ */
+          &.expanded {
+            transform: rotate(180deg);
+          }
+        }
+      }
+
+      /* 【新增】包裹层：用于控制高度动画 */
+      .history-list-wrapper {
+        /* 默认折叠状态：高度为0，隐藏溢出 */
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-in-out; /* 高度变化动画 */
+        opacity: 0; /* 可选：配合透明度渐变 */
+        
+        /* 展开状态：设置一个足够大的最大高度 */
+        &.expanded {
+          /* 假设每条记录约 80rpx，3条就是 240rpx，给个冗余值 300rpx */
+          max-height: 300rpx; 
+          opacity: 1;
+        }
+
+        .history-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 16rpx;
+          padding-bottom: 10rpx; /* 防止内容贴底 */
+
+          .history-item {
+            flex: 0 0 calc(50% - 8rpx); 
+            max-width: calc(50% - 8rpx);
+            
+            background-color: #f8f9fa;
+            border-radius: 12rpx;
+            padding: 20rpx;
+            box-sizing: border-box;
+            border: 1rpx solid #eee;
+            transition: all 0.2s;
+
+            &:active {
+              background-color: #eef2f7;
+              transform: scale(0.98);
+            }
+
+            .history-title {
+              display: block;
+              font-size: 28rpx;
+              color: #333;
+              font-weight: 500;
+              line-height: 1.4;
+              margin-bottom: 8rpx;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+
+            .history-source {
+              display: block;
+              font-size: 22rpx;
+              color: #999;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+          }
+        }
+      }
+    }
 
      /* 常用查询 */
     .quick-query {
@@ -349,29 +460,55 @@
 
     .input-box {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       background-color: #f5f7fa;
-      border-radius: 40rpx;
-      padding: 0 24rpx;
+      border-radius: 20rpx;
+      padding: 10rpx 20rpx;
+      min-height: 50rpx;
 
-      .input {
+      .input-textarea {
         flex: 1;
-        height: 80rpx;
         font-size: 28rpx;
+        line-height: 40rpx; /* 与 JS 中的 lineHeight 对应 */
+        padding: 10rpx 0;
+        min-height: 40rpx;
+        max-height: 160rpx; /* 4行 * 40rpx = 160rpx */
+        
+        /* 允许内部滚动 */
+        overflow-y: auto; 
+        
+        /* 隐藏原生边框 */
+        border: none;
+        background: transparent;
+        
+        /* 针对微信小程序/APP端的滚动条美化（可选） */
+        &::-webkit-scrollbar {
+          width: 4rpx;
+        }
+        &::-webkit-scrollbar-thumb {
+          background-color: #ccc;
+          border-radius: 4rpx;
+        }
       }
 
       .send-btn {
         width: 60rpx;
         height: 60rpx;
+        margin-left: 10rpx;
         background-color: #007aff;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
 
         image {
           width: 30rpx;
           height: 30rpx;
+        }
+        &.disabled {
+          background-color: #ccc;
+          opacity: 0.6;
         }
       }
     }

@@ -48,7 +48,7 @@
     </scroll-view>
 
     <!-- 定制化情报推送 -->
-    <view class="info-card">
+    <view class="info-card" @click="goToPersonalize">
       <view class="info-icon"></view>
       <view class="info-content">
         <view class="info-title">定制化情报推送</view>

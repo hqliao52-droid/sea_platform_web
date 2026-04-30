@@ -1,4 +1,5 @@
 import { request } from '@/utils/request.js'
+import { addReadHistory } from '@/utils/history.js';
 
 export default {
   data() {
@@ -36,7 +37,8 @@ export default {
           title: "某知名 3C 品牌新加坡海外仓案例",
           desc: "通过在前置仓完成预分拣，将清关时间从 3 天缩短至 6 小时。"
         }
-      ]
+      ],
+      articleInfo:null,
     };
   },
   onLoad (options){
@@ -185,6 +187,11 @@ export default {
               this.policy_compliance = res.data.ai_origin_output?.policy_risk.policy_compliance || '';
               this.risk = true;
             }
+            const detail = res.data;
+            this.articleInfo = detail;
+            addReadHistory(detail);
+
+            console.log(res.data);
             
             const abstract = res.data.ai_origin_output?.abstract || '';
             if (abstract) {

@@ -1,5 +1,6 @@
 import {request} from '@/utils/request.js';
 import { getUserInfo } from '@/utils/user.js';
+import { getReadHistory } from '@/utils/history.js';
 
 export default {
   data() {
@@ -23,11 +24,22 @@ export default {
       groupedSessions: [],
 
       inputText:'',
+      textareaHeight: 50, 
+      maxLines: 4,
+      lineHeight: 40, 
+
       currentSessionId: null,
       isStreaming: false,
 
       // u-parse 的标签样式，用于在富文本里保持与气泡一致的字体/换行/列表展示
       bubbleTagStyle: {
+        h1: 'margin:10rpx 0;padding:0;font-size:34rpx;font-weight:700;line-height:1.4;',
+        h2: 'margin:8rpx 0;padding:0;font-size:32rpx;font-weight:600;line-height:1.4;',
+        h3: 'margin:6rpx 0;padding:0;font-size:30rpx;font-weight:600;line-height:1.4;',
+        h4: 'margin:4rpx 0;padding:0;font-size:28rpx;font-weight:600;line-height:1.4;',
+        h5: 'margin:4rpx 0;padding:0;font-size:26rpx;font-weight:600;line-height:1.4;',
+        h6: 'margin:4rpx 0;padding:0;font-size:24rpx;font-weight:600;line-height:1.4;color:#666;',
+
         p: 'margin:0;padding:0;font-size:28rpx;line-height:1.6;word-break:break-all;',
         br: 'display:block;',
         strong: 'font-weight:700;',
@@ -38,148 +50,52 @@ export default {
       },
 
       scrollTop: 0, 
+      recentHistory: [], 
+      isHistoryExpanded: false,
+
     };
   },
   onShow(){
     this.loadUserInfo();
+    this.loadRecentHistory();
     this.$nextTick(() => {
       this.initDefaultSession();
     });
   },
+
   methods: {
-    async initDefaultSession() {
-      if (!this.userInfo || !this.userInfo.id) {
-        // 如果未登录，可能无法获取会话，视情况而定
-        console.log('用户未登录，跳过会话初始化');
-        return;
+    onInput(e) {
+      const value = e.detail.value;
+      this.inputText = value;
+      
+      // 简单估算行数：根据换行符 \n 和 字符长度
+      // 这里做一个简化的估算，更精确的需要获取光标位置或渲染后测量
+      // 假设每行约 20 个中文字符（根据字体大小调整）
+      const lines = value.split('\n');
+      let estimatedLines = 0;
+      
+      lines.forEach(line => {
+        // 每 25 个字符算一行（根据实际字体大小微调）
+        estimatedLines += Math.ceil(line.length / 25) || 1;
+      });
+      
+      // 限制最大行数
+      if (estimatedLines > this.maxLines) {
+        estimatedLines = this.maxLines;
       }
-
-      try {
-        uni.showLoading({ title: '加载中...' });
-        
-        // 1. 获取所有会话
-        const res = await request({
-          url: '/session/get_sessions',
-          method: "GET",
-          data: { user_id: parseInt(this.userInfo.id) }
-        });
-
-        if (res.code === 200 || res.code === '200') {
-          const sessions = res.data || [];
-          
-          if (sessions && sessions.length > 0) {
-            // 2. 按 update_time 降序排列，取第一个（最新的）
-            // 注意：确保后端返回的时间格式能被 Date 解析，通常是 ISO 字符串或时间戳
-            sessions.sort((a, b) => {
-              const timeA = new Date(a.update_time || a.created_time).getTime();
-              const timeB = new Date(b.update_time || b.created_time).getTime();
-              return timeB - timeA; // 降序
-            });
-
-            const latestSession = sessions[0];
-            console.log('加载最新会话:', latestSession);
-            
-            // 3. 设置当前会话 ID 并加载消息
-            this.currentSessionId = latestSession.id;
-            
-            // 更新侧边栏数据（可选，为了保持状态一致）
-            this.sessionList = sessions;
-            this.groupSessionsByDate(this.sessionList);
-
-            // 4. 加载该会话的消息
-            await this.loadSessionMessages(latestSession.id);
-          } else {
-            // 如果没有历史会话，则创建一个新会话
-            console.log('无历史会话，创建新会话');
-            await this.createAndInitNewSession();
-          }
-        } else {
-          // 获取列表失败，降级处理：创建新会话
-          console.warn('获取会话列表失败，创建新会话');
-          await this.createAndInitNewSession();
-        }
-      } catch (err) {
-        console.error('初始化会话失败:', err);
-        // 异常情况下，也尝试创建新会话，保证用户可用
-        await this.createAndInitNewSession();
-      } finally {
-        uni.hideLoading();
-        this.newSessionWindowLoading = true; // 恢复按钮状态
-      }
+      
+      // 计算新高度：基础 padding + 行数 * 行高
+      // 假设 padding 上下各 20rpx，行高 40rpx
+      const newHeight = 40 + (estimatedLines * this.lineHeight); 
+      
+      // 更新高度
+      this.textareaHeight = newHeight;
     },
-    async loadSessionMessages(sessionId) {
-      if (!sessionId) return;
-      
-      try {
-        const res = await request({
-          url: '/chatMessage/get_by_session_id',
-          method: "GET",
-          data: { session_id: sessionId }
-        });
-
-        if (res.code === 200 || res.code === '200') {
-          const rawList = res.data || [];
-          // 处理消息，生成 renderedHtml
-          this.messageList = rawList.map(m => {
-            if (m && m.role === 'assistant') {
-              return { 
-                ...m, 
-                renderedHtml: this.renderMarkdownToHtml(m.content || '') 
-              };
-            }
-            return m;
-          });
-          
-          // 滚动到底部
-          this.scrollToBottom();
-          console.log('会话消息加载完成，数量:', this.messageList.length);
-          this.$nextTick(() => {
-            this.scrollToBottom();
-          });
-        } else {
-          uni.showToast({ title: res.msg || '拉取会话消息失败', icon: 'none' });
-          this.messageList = []; // 失败则清空
-        }
-      } catch (err) {
-        console.error('Load Session Messages Error:', err);
-        uni.showToast({ title: '网络请求失败', icon: 'none' });
-        this.messageList = [];
-      }
+    toggleHistory() {
+      this.isHistoryExpanded = !this.isHistoryExpanded;
     },
-    async createAndInitNewSession() {
-      if (!this.userInfo || !this.userInfo.id) {
-        uni.showToast({ title: '请先登录', icon: 'none' });
-        return;
-      }
-      
-      try {
-        const res = await request({
-          url: '/session/new_session',
-          method: 'PUT',
-          data: { user_id: parseInt(this.userInfo.id) }
-        });
-
-        if (res.code === 200 || res.code === '200') {
-          this.currentSessionId = res.data.id;
-          this.messageList = []; // 新会话当然没有消息
-          console.log('新会话创建成功 ID:', this.currentSessionId);
-        } else {
-          uni.showToast({ title: res.msg || '创建新会话失败', icon: 'none' });
-        }
-      } catch (err) {
-        console.error('New Session Error:', err);
-        uni.showToast({ title: '网络请求失败', icon: 'none' });
-      }
-    },
-    async newSession() {
-      // 点击新建时，先清空当前界面，然后创建新会话
-      this.messageList = [];
-      this.currentSessionId = null;
-      this.newSessionWindowLoading = false; // 显示加载中
-      
-      await this.createAndInitNewSession();
-      
-      this.newSessionWindowLoading = true; // 恢复
+    loadRecentHistory() {
+      this.recentHistory = getReadHistory();
     },
     testUpdate() {
       // 测试响应式更新
@@ -223,12 +139,27 @@ export default {
       };
 
       // 行级解析：编号列表（1. xxx）优先，其它行默认当作普通文本逐行换行展示
-      const lines = escapeHtml(src).split('\n');
+      const lines = src.split('\n');
       let out = [];
       let inOl = false;
 
       for (let i = 0; i < lines.length; i++) {
         const rawLine = lines[i];
+        const headerMatch = rawLine.match(/^(\#{1,6})\s+(.*)$/);
+        if (headerMatch) {
+          // 如果之前在列表中，先闭合列表
+          if (inOl) {
+            inOl = false;
+            out.push('</ol>');
+          }
+
+          const level = headerMatch[1].length; // # 的数量即级别
+          const content = headerMatch[2];
+          // 对标题内容进行 inline 渲染（支持加粗等）并转义
+          const safeContent = renderInline(escapeHtml(content));
+          out.push(`<h${level}>${safeContent}</h${level}>`);
+          continue;
+        }
         const line = rawLine || '';
         const m = line.match(/^\s*(\d+)\.\s+(.*)$/);
 
@@ -238,6 +169,7 @@ export default {
             out.push('<ol>');
           }
           const content = m[2] ?? '';
+          const rawContent = rawLine.match(/^\s*\d+\.\s+(.*)$/)[1];
           out.push('<li>' + renderInline(content) + '</li>');
           continue;
         }
@@ -258,6 +190,7 @@ export default {
           out.push('</ol>');
         }
 
+        const rawContent = rawLine;
         out.push('<p>' + renderInline(line) + '</p>');
       }
 
@@ -620,7 +553,7 @@ export default {
       };
       this.messageList.push(userMsg);
       
-      // 2. 加一个空的AI消息（用来流式打字）- 关键：使用 $set 确保响应式
+      // 2. 加一个空的AI消息（用来流式打字）- 使用 $set 确保响应式
       const aiMsgIndex = this.messageList.length;
       const aiMsg = {
         role: "assistant",
@@ -640,6 +573,9 @@ export default {
       this.inputText = "";
       this.isStreaming = true;
       this.scrollToBottom();
+
+      this.inputText = "";
+      this.textareaHeight = 50;
 
       try {
         // 调用 insert_message 获取 task_id
@@ -683,49 +619,147 @@ export default {
       }
     },
     scrollToBottom() {
-      // 【关键修改】增加延迟，确保 scroll-view 内容高度已计算完毕
-      // 特别是在 H5 端，图片加载或富文本渲染可能需要额外时间
+      // 使用 $nextTick 确保 DOM 更新后再滚动
+      this.$nextTick(() => {
+        // 增加一点延迟，确保内容渲染完成
         setTimeout(() => {
-        // 第一步：重置（可选，有时直接设大值也可以，但重置更稳妥）
-        this.scrollTop = 0; 
-        
-        // 第二步：在下一个 tick 设置为极大值
-        this.$nextTick(() => {
-          // 使用 Date.now() 确保每次值都不一样，强制触发更新
-          this.scrollTop = 999999 + Math.random(); 
-        });
-      }, 100); // 100ms 延迟通常足够让 DOM 渲染完成
+          this.scrollTop = 999999;
+        }, 50);
+      });
     },
-    onScroll(e){
-      console.log("滚动位置：",e.detail.scrollTop);
+    async initDefaultSession() {
+      if (!this.userInfo || !this.userInfo.id) {
+        // 如果未登录，可能无法获取会话，视情况而定
+        console.log('用户未登录，跳过会话初始化');
+        return;
+      }
+
+      try {
+        uni.showLoading({ title: '加载中...' });
+        
+        // 1. 获取所有会话
+        const res = await request({
+          url: '/session/get_sessions',
+          method: "GET",
+          data: { user_id: parseInt(this.userInfo.id) }
+        });
+
+        if (res.code === 200 || res.code === '200') {
+          const sessions = res.data || [];
+          
+          if (sessions && sessions.length > 0) {
+            // 2. 按 update_time 降序排列，取第一个（最新的）
+            // 注意：确保后端返回的时间格式能被 Date 解析，通常是 ISO 字符串或时间戳
+            sessions.sort((a, b) => {
+              const timeA = new Date(a.update_time || a.created_time).getTime();
+              const timeB = new Date(b.update_time || b.created_time).getTime();
+              return timeB - timeA; // 降序
+            });
+
+            const latestSession = sessions[0];
+            console.log('加载最新会话:', latestSession);
+            
+            // 3. 设置当前会话 ID 并加载消息
+            this.currentSessionId = latestSession.id;
+            
+            // 更新侧边栏数据（可选，为了保持状态一致）
+            this.sessionList = sessions;
+            this.groupSessionsByDate(this.sessionList);
+
+            // 4. 加载该会话的消息
+            await this.loadSessionMessages(latestSession.id);
+          } else {
+            // 如果没有历史会话，则创建一个新会话
+            console.log('无历史会话，创建新会话');
+            await this.createAndInitNewSession();
+          }
+        } else {
+          // 获取列表失败，降级处理：创建新会话
+          console.warn('获取会话列表失败，创建新会话');
+          await this.createAndInitNewSession();
+        }
+      } catch (err) {
+        console.error('初始化会话失败:', err);
+        // 异常情况下，也尝试创建新会话，保证用户可用
+        await this.createAndInitNewSession();
+      } finally {
+        uni.hideLoading();
+        this.newSessionWindowLoading = true; // 恢复按钮状态
+      }
+    },
+
+    // 【新增】加载指定会话的消息
+    async loadSessionMessages(sessionId) {
+      if (!sessionId) return;
+      
+      try {
+        const res = await request({
+          url: '/chatMessage/get_by_session_id',
+          method: "GET",
+          data: { session_id: sessionId }
+        });
+
+        if (res.code === 200 || res.code === '200') {
+          const rawList = res.data || [];
+          // 处理消息，生成 renderedHtml
+          this.messageList = rawList.map(m => {
+            if (m && m.role === 'assistant') {
+              return { 
+                ...m, 
+                renderedHtml: this.renderMarkdownToHtml(m.content || '') 
+              };
+            }
+            return m;
+          });
+          
+          // 滚动到底部
+          this.scrollToBottom();
+          console.log('会话消息加载完成，数量:', this.messageList.length);
+        } else {
+          uni.showToast({ title: res.msg || '拉取会话消息失败', icon: 'none' });
+          this.messageList = []; // 失败则清空
+        }
+      } catch (err) {
+        console.error('Load Session Messages Error:', err);
+        uni.showToast({ title: '网络请求失败', icon: 'none' });
+        this.messageList = [];
+      }
+    },
+
+    // 【修改】创建新会话并初始化（不直接操作 messageList，由调用者决定）
+    async createAndInitNewSession() {
+      if (!this.userInfo || !this.userInfo.id) {
+        uni.showToast({ title: '请先登录', icon: 'none' });
+        return;
+      }
+      
+      try {
+        const res = await request({
+          url: '/session/new_session',
+          method: 'PUT',
+          data: { user_id: parseInt(this.userInfo.id) }
+        });
+
+        if (res.code === 200 || res.code === '200') {
+          this.currentSessionId = res.data.id;
+          this.messageList = []; // 新会话当然没有消息
+          console.log('新会话创建成功 ID:', this.currentSessionId);
+        } else {
+          uni.showToast({ title: res.msg || '创建新会话失败', icon: 'none' });
+        }
+      } catch (err) {
+        console.error('New Session Error:', err);
+        uni.showToast({ title: '网络请求失败', icon: 'none' });
+      }
     },
     async newSession(){
       this.newSessionWindowLoading = false;
       this.messageList = [];
-      if(!this.userInfo || !this.userInfo.id){
-        uni.showToast({title: '请先登录',icon: 'none'});
-        return;
-      }
-      try{
-        const res = await request({
-          url: '/session/new_session',
-          method: 'PUT',
-          data: {user_id: parseInt(this.userInfo.id)}
-        });
+      this.currentSessionId = null;
 
-        if(res.code === 200 || res.code === '200'){
-          this.currentSessionId = res.data.id;
-          console.log('新会话返回：', res);
-        }else{
-          uni.showToast({title: res.msg || '创建新会话失败',icon: 'none'});
+      await this.createAndInitNewSession();
 
-        }
-      }catch(err){
-        console.error('New Session Error:', err);
-        uni.showToast({title: '网络请求失败',icon: 'none'});
-      }finally{
-        this.newSessionWindowLoading = true;
-      }
+      this.newSessionWindowLoading = true;
     },
     async getSessions(){
       if(this.showSidebar){
@@ -858,7 +892,6 @@ export default {
         uni.hideLoading();
       }
       this.closeSidebar();
-      this.loadSessionMessages(session.id);
     },
     formatTimeShort(timeStr) {
       if (!timeStr) return '';
