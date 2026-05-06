@@ -1,6 +1,7 @@
 import {request} from '@/utils/request.js';
 import { getUserInfo } from '@/utils/user.js';
 import { getReadHistory } from '@/utils/history.js';
+import { streamRequest } from '@/utils/stream-request.js';
 
 export default {
   data() {
@@ -211,10 +212,8 @@ export default {
         if (!(res && (res.code === 200 || res.code === '200'))) return;
 
         const list = res.data || [];
-        // 找到后端最后一条 assistant
         const serverAssistant = [...list].reverse().find(m => m && m.role === 'assistant');
         if (!serverAssistant) return;
-
         if (!this.messageList[aiIndex] || this.messageList[aiIndex].role !== 'assistant') return;
 
         const content = serverAssistant.content || '';
@@ -223,311 +222,56 @@ export default {
         if (serverAssistant.created_time) {
           this.$set(this.messageList[aiIndex], 'created_time', serverAssistant.created_time);
         }
-        console.log('assistant 气泡已从后端刷新（markdown恢复）');
       } catch (e) {
         console.error('refreshAssistantMessageFromServer error:', e);
       }
     },
 
     // 流式接收 LLM 输出
-    startStream(taskId, aiIndex) {
-      const that = this;  // 关键：保存 Vue 实例
-      let buffer = "";
-      let contentUpdateCount = 0;
-      let finished = false;
-      let lastRenderedUpdateCount = 0;
-      const decoder = new TextDecoder("utf-8");
-      const isH5Env = (typeof window !== 'undefined');
-      let didServerRefresh = false;
+    startWS(taskId, aiIndex) {
+      const that = this;
 
-      // 将 uni.request 的分块数据/最终响应统一解码成文本
-      const decodeToText = (data) => {
-        if (typeof data === "string") return data;
-        if (data instanceof ArrayBuffer) return decoder.decode(new Uint8Array(data), { stream: true });
-        if (ArrayBuffer.isView(data)) return decoder.decode(data, { stream: true });
-        // 兼容某些环境下包装结构：{ data: ArrayBuffer }
-        if (data && typeof data === "object" && data.data instanceof ArrayBuffer) {
-          return decoder.decode(new Uint8Array(data.data), { stream: true });
+      const ws = uni.connectSocket({
+        url: `ws://192.168.110.218:8000/chatMessage/ws/chat/${taskId}`,
+        success() {
+          console.log("WS连接发起成功");
         }
-        return String(data || "");
-      };
-      
-      if (!this.messageList[aiIndex]) {
-        console.error('AI消息对象不存在, aiIndex:', aiIndex);
-        return;
-      }
+      });
 
-      console.log('开始流式接收, taskId:', taskId, 'aiIndex:', aiIndex);
+      // ❗注意：不是 ws.onOpen
+      uni.onSocketOpen(() => {
+        console.log("WS连接成功");
+      });
 
-      // 解析 SSE 文本行（只关心 data: xxx）
-      const processLine = (rawLine) => {
-        if (finished) return;
+      uni.onSocketMessage((res) => {
+        const delta = res.data;
 
-        let line = (rawLine || "").trim();
-        if (!line || line.startsWith(":")) return;
+        if (!that.messageList[aiIndex]) return;
 
-        // 服务端结束/错误标记可能不是 data: 前缀形式
-        if (line.includes("[[END]]")) {
-          finished = true;
-          that.isStreaming = false;
-          if (that.messageList[aiIndex]) {
-            const finalContent = that.messageList[aiIndex].content || '';
-            that.$set(that.messageList[aiIndex], 'renderedHtml', that.renderMarkdownToHtml(finalContent));
-          }
-          console.log("流结束，总更新次数:", contentUpdateCount);
-          that.$forceUpdate();
-          // H5 环境下，流式分片可能导致 markdown 换行语义不一致
-          // 用一次“后端最终内容”刷新当前 assistant 气泡，恢复样式
-          if (isH5Env && !didServerRefresh) {
-            didServerRefresh = true;
-            that.refreshAssistantMessageFromServer(aiIndex);
-          }
-          return;
-        }
+        const msg = that.messageList[aiIndex];
+        const newContent = (msg.content || "") + delta;
 
-        if (line.includes("[[ERROR]]")) {
-          finished = true;
-          that.isStreaming = false;
-          uni.showToast({ title: '生成失败', icon: 'none' });
-          if (that.messageList[aiIndex] && !that.messageList[aiIndex].content) {
-            that.messageList.splice(aiIndex, 1);
-          }
-          if (that.messageList[aiIndex]) {
-            const finalContent = that.messageList[aiIndex].content || '';
-            that.$set(that.messageList[aiIndex], 'renderedHtml', that.renderMarkdownToHtml(finalContent));
-          }
-          that.$forceUpdate();
-          return;
-        }
+        that.$set(msg, "content", newContent);
+        that.$set(msg, "renderedHtml", that.renderMarkdownToHtml(newContent));
 
-        if (!line.startsWith("data:")) return;
-
-        // 兼容 data: 后面可能有空格的情况
-        // 关键：服务端可能用 `data:` 空行表示换行/段落分隔，这里要保留为 '\n'
-        const deltaRaw = line.substring(5); // data: 后面的原始字符串（可能为空）
-        let delta = deltaRaw.trim();
-        if (deltaRaw === '') {
-          delta = '\n';
-        }
-
-        // 服务端结束标记
-        if (delta.includes("[[END]]")) {
-          finished = true;
-          that.isStreaming = false;
-          if (that.messageList[aiIndex]) {
-            const finalContent = that.messageList[aiIndex].content || '';
-            that.$set(that.messageList[aiIndex], 'renderedHtml', that.renderMarkdownToHtml(finalContent));
-          }
-          console.log("流结束，总更新次数:", contentUpdateCount);
-          that.$forceUpdate();
-          if (isH5Env && !didServerRefresh) {
-            didServerRefresh = true;
-            that.refreshAssistantMessageFromServer(aiIndex);
-          }
-          return;
-        }
-
-        // 服务端错误标记
-        if (delta.includes("[[ERROR]]")) {
-          finished = true;
-          that.isStreaming = false;
-          uni.showToast({ title: '生成失败', icon: 'none' });
-          if (that.messageList[aiIndex] && !that.messageList[aiIndex].content) {
-            that.messageList.splice(aiIndex, 1);
-          }
-          if (that.messageList[aiIndex]) {
-            const finalContent = that.messageList[aiIndex].content || '';
-            that.$set(that.messageList[aiIndex], 'renderedHtml', that.renderMarkdownToHtml(finalContent));
-          }
-          that.$forceUpdate();
-          return;
-        }
-
-        // 避免把仅空格的 data: 当成正文
-        if (delta === '') return;
-
-        contentUpdateCount++;
-        if (!that.messageList[aiIndex]) {
-          console.error('AI消息对象在更新时丢失');
-          return;
-        }
-
-        const currentContent = that.messageList[aiIndex].content || '';
-        const newContent = currentContent + delta;
-        that.$set(that.messageList[aiIndex], 'content', newContent);
-
-        // 流式渲染时并不需要每次都全量 markdown->html（会更卡），这里每追加两段再更新一次富文本
-        const shouldRenderNow =
-          contentUpdateCount === 1 ||
-          (contentUpdateCount - lastRenderedUpdateCount) >= 2;
-
-        if (shouldRenderNow) {
-          that.$set(that.messageList[aiIndex], 'renderedHtml', that.renderMarkdownToHtml(newContent));
-          lastRenderedUpdateCount = contentUpdateCount;
-        }
-
-        console.log(`更新 #${contentUpdateCount}:`, delta, '当前长度:', newContent.length);
         that.scrollToBottom();
-      };
 
-      const processTextChunk = (textChunk) => {
-        if (finished) return;
-        if (!textChunk) return;
-
-        buffer += textChunk;
-        // 兼容 \n / \r\n / \r
-        const lines = buffer.split(/\r\n|\n|\r/);
-        // 最后一行可能是不完整的，先留到下次拼接
-        buffer = lines.pop() || "";
-        for (let line of lines) {
-          processLine(line);
-          if (finished) return;
+        if (delta.includes("[[END]]")) {
+          console.log("WS结束");
+          uni.closeSocket();
+          that.isStreaming = false;
         }
-      };
+      });
 
-      const startByUniRequest = () => {
-        const requestTask = uni.request({
-          url: `/chatMessage/chat_stream/${taskId}`,
-          method: "GET",
-          enableChunkedResponse: true,
-          responseType: "text",
-          header: {
-            'Accept': 'text/event-stream'
-          },
-          onChunkReceived: (res) => {
-            try {
-              // 部分环境下 res.data 可能是 string，也可能是 ArrayBuffer/TypedArray
-              const chunkText = decodeToText(res?.data);
+      uni.onSocketError((err) => {
+        console.error("WS错误", err);
+      });
 
-              if (chunkText) {
-                console.log('收到数据块, 长度:', chunkText.length);
-              }
-              processTextChunk(chunkText);
-            } catch (e) {
-              console.error('解析流数据出错', e);
-            }
-          },
-          success: (res) => {
-            that.isStreaming = false;
-            console.log('流请求完成');
-            // 解析最后残留的 buffer（onChunkReceived 可能留了最后一行未以换行结尾）
-            try {
-              // H5/部分端可能不触发 onChunkReceived，这里用 success(res.data) 做兜底
-              const shouldFallbackParse =
-                !finished &&
-                contentUpdateCount === 0 &&
-                res && res.data;
+      uni.onSocketClose(() => {
+        console.log("WS关闭");
+      });
 
-              if (shouldFallbackParse) {
-                const fullText = decodeToText(res.data);
-                if (fullText && fullText.trim()) {
-                  console.log('onChunkReceived 未增量更新，使用 success(res.data) 兜底解析');
-                  processTextChunk(fullText);
-                }
-              }
-
-              if (!finished && buffer && buffer.trim()) {
-                // 直接按“data:”行规则处理，避免把原始 SSE 内容（包含 data: 前缀）塞进正文
-                processLine(buffer);
-              }
-              // decoder flush（如果上面使用了 stream: true）
-              if (!finished) {
-                const tail = decoder.decode(); // flush
-                if (tail && tail.trim()) processLine(tail);
-              }
-            } catch (e) {
-              console.error('解析 success 阶段残留失败', e);
-            } finally {
-              that.$forceUpdate();
-            }
-            that.scrollToBottom();
-          },
-          fail: (err) => {
-            console.error("流失败", err);
-            that.isStreaming = false;
-            uni.showToast({ title: '网络连接中断', icon: 'none' });
-            if (that.messageList[aiIndex] && !that.messageList[aiIndex].content) {
-              that.messageList.splice(aiIndex, 1);
-              that.$forceUpdate();
-            }
-          }
-        });
-
-        return requestTask;
-      };
-
-      // H5：优先用 fetch + ReadableStream 真正逐块读取 SSE，避免 onChunkReceived 只在 success 才回调
-      const canUseFetchStream =
-        typeof window !== 'undefined' &&
-        typeof window.fetch === 'function' &&
-        typeof window.ReadableStream !== 'undefined';
-
-      if (canUseFetchStream) {
-        const url = `/chatMessage/chat_stream/${taskId}`;
-        (async () => {
-          let usedFallback = false;
-          try {
-            const resp = await fetch(url, {
-              method: "GET",
-              headers: {
-                'Accept': 'text/event-stream'
-              }
-            });
-
-            if (!resp || !resp.body) {
-              console.warn('fetch streaming 不支持（resp.body 为空），回退 uni.request');
-              usedFallback = true;
-              startByUniRequest();
-              return;
-            }
-
-            const reader = resp.body.getReader();
-            while (true) {
-              const { value, done } = await reader.read();
-              if (done) break;
-              if (finished) break;
-
-              const chunkText = decoder.decode(value, { stream: true });
-              processTextChunk(chunkText);
-
-              if (finished) {
-                try { reader.cancel && reader.cancel(); } catch (e) {}
-                break;
-              }
-            }
-
-            // 兜底：如果没有 [[END]]，至少关闭流状态并处理尾部残留
-            if (!finished) {
-              that.isStreaming = false;
-              if (buffer && buffer.trim()) processLine(buffer);
-              const tail = decoder.decode(); // flush
-              if (tail && tail.trim()) processLine(tail);
-            }
-
-            // 如果服务端没有发 [[END]]，走兜底也刷新一次当前气泡
-            if (isH5Env && !finished && !didServerRefresh) {
-              didServerRefresh = true;
-              that.refreshAssistantMessageFromServer(aiIndex);
-            }
-          } catch (e) {
-            console.error('fetch SSE 流式读取失败，回退 uni.request', e);
-            // 重置状态再启动回退请求，避免污染 uni.request 的解析
-            buffer = "";
-            contentUpdateCount = 0;
-            finished = false;
-            that.isStreaming = true;
-            usedFallback = true;
-            startByUniRequest();
-          } finally {
-            that.$forceUpdate();
-            that.scrollToBottom();
-          }
-        })();
-
-        return;
-      }
-
-      return startByUniRequest();
+      return ws;
     },
     // 发送消息 + 接收流式输出
     async sendMessage() {
@@ -589,12 +333,15 @@ export default {
           }
         });
 
-        if (res.code != 200 && res.code !== '200') throw new Error("发送失败");
+        if (!res || (res.code !== 200 && res.code !== '200')) {
+          throw new Error("发送失败");
+        }
+        console.log('insert_message 返回:', res);
 
         const task_id = res.data.task_id;
         
         // 开始流式接收
-        this.startStream(task_id, aiIndex);
+        this.startWS(task_id, aiIndex);
 
       } catch (err) {
         console.error(err);

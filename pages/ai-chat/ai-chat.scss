@@ -10,15 +10,22 @@
   .navbar {
     display: flex;
     position: fixed;
+    top:0;
+    left: 0;
     z-index: 999;
     align-items: center;
     // justify-content: space-between;
-    height: 120rpx;
     padding: 0 30rpx;
+    min-height: 88rpx;
+    padding-bottom: 5rpx;
+    margin-bottom: 5rpx;
+    padding-top: var(--status-bar-height);
+    // padding-top: env(safe-area-inset-top);
     width: 100%;
     border-bottom: 1rpx solid #eee;
     background-color: #fff;
     box-sizing: border-box;
+    border-bottom: 1rpx solid #eee;
 
     .nav-left {
       flex:0 0 80rpx;
@@ -26,8 +33,8 @@
       align-items: center;
 
       .tit_liner {
-        width: 60rpx;
-        height: 60rpx;
+        width: 40rpx;
+        height: 40rpx;
         // background-color: #000;
         border-radius: 12rpx;
 
@@ -76,6 +83,7 @@
       color: #999;
       margin: 20rpx 0;
       background-color: #f5f7fa;
+      margin-top: 30rpx;
       display: inline-block;
       padding: 6rpx 16rpx;
       border-radius: 20rpx;
@@ -295,13 +303,15 @@
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 90rpx;
+    bottom: calc(env(safe-area-inset-bottom)); 
     z-index: 999;
-    padding: 20rpx 30rpx;
+    padding: 10rpx 30rpx;
+    padding-bottom: calc(10rpx + env(safe-area-inset-bottom));
     border-top: 1rpx solid #eee;
     background-color: #fff;
-    min-height: 300rpx;
-    max-height: 60vh;
+    // min-height: 300rpx;
+    // max-height: 60vh;
+    box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
     transition: height 0.2s ease;
     display: flex;
     flex-direction: column;
@@ -529,6 +539,7 @@
     width: 55%; // 占屏幕宽 55%
     height: 95%;
     background-color: #ffffff;
+    padding-top: var(--status-bar-height); 
     z-index: 999; // 高于蒙版
     opacity: 0.95;
     box-shadow: 2rpx 0 10rpx rgba(0, 0, 0, 0.1);
