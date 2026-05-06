@@ -2,9 +2,7 @@
   <view class="container">
     <!-- 顶部导航栏 -->
     <view class="navbar">
-      <view class="logo">
-      </view>
-      <view class="nav-title">Go Global AI</view>
+      <view class="nav-title">推荐</view>
       <view class="login-btn" v-if="!nickName || nickName === '未登录'" @click="goToLogin">登录</view>
       <view class="login-btn" v-else>欢迎您<br>{{ nickName }}！</view>
     </view>

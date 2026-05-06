@@ -7,30 +7,27 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 120rpx;
     padding: 0 30rpx;
+    min-height: 88rpx;
     border-bottom: 1rpx solid #f0f0f0;
-
-    .logo-icon {
-      width: 72rpx;
-      height: 72rpx;
-      background-color: #007aff;
-      border-radius: 16rpx;
-      mask: url('https://img.icons8.com/fluency/96/000000/lightning-bolt.png') no-repeat center;
-      -webkit-mask: url('https://img.icons8.com/fluency/96/000000/lightning-bolt.png') no-repeat center;
-      background-size: 60%;
-    }
+    padding-top: var(--status-bar-height); 
+    padding-bottom: 10rpx;
+    box-sizing: border-box;
+    border-bottom: 1rpx solid #f0f0f0;
+    background-color: #ffffff;
 
     .nav-title {
       font-size: 36rpx;
       font-weight: 600;
       color: #000;
+      margin-left: 30rpx;
     }
 
     .login-btn {
       font-size: 20rpx;
       color: #007aff;
       font-weight: 500;
+      margin-right: 30rpx;
     }
   }
 

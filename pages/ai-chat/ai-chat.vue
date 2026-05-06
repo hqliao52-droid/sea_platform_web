@@ -91,7 +91,7 @@
         <view class="section-header" @click="toggleHistory">
           <view class="section-title">最近阅读</view>
           <!-- 箭头图标：根据状态旋转 -->
-          <text class="toggle-icon" :class="{ 'expanded': isHistoryExpanded }">﹀</text>
+          <text class="toggle-icon" :class="{ 'expanded': isHistoryExpanded }">︿</text>
         </view>
 
         <!-- 内容区域：使用 max-height 实现动画效果 -->
