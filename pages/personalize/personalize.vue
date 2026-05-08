@@ -5,21 +5,12 @@
       <view class="back-btn" @click="goBack">
         <image src="/static/icons/back.png" mode="aspectFit"></image>
       </view>
-      <!-- <view class="title">Go Global AI</view>
-      <view class="user-info">
-        <view class="text">欢迎您<br>系统管理员！</view>
-        <image class="avatar" src="/static/icons/avatar.png" mode="aspectFit"></image>
-      </view> -->
     </view>
 
     <!-- 标题区 -->
     <view class="title-section">
       <view class="main-title">定制化情报推送</view>
-      <view class="sub-title">ⓘ 基于您的企业经营范围实时更新
-      </view>
-      <!-- <view class="illustration">
-        <image src="/static/personalize.png" mode="aspectFit"></image>
-      </view> -->
+      <view class="sub-title">ⓘ 基于您的企业经营范围实时更新</view>
     </view>
 
     <!-- 推送规则设置卡片 -->
@@ -49,18 +40,18 @@
         </view>
       </view>
 
-      <!-- 推送类别 -->
+      <!-- 推送类别 → 这里修复了样式 + 按钮点击 -->
       <view class="form-item">
         <view class="label">推送类别
-          <text class="icon-info">ⓘ</text>
+          <!-- <text class="icon-info">ⓘ</text> -->
         </view>
         <view class="tag-group">
-          <view class="tag" v-for="(item, index) in selectedCategories" :key="index">
-            {{ item }}
-            <text class="tag-close" @click="removeCategory(index)">×</text>
+          <view class="tag" v-for="item in selectedCategories" :key="item.id">
+            {{ item.tag_name }}
+            <text class="tag-close" @click="removeCategory(item.id)">×</text>
           </view>
-          <view class="select-box" @click="showCategoryModal = true">
-            <text>选择类别</text>
+          <view class="select-box" @click="openCategoryModal">
+            <text>+ 选择类别</text>
           </view>
         </view>
       </view>
@@ -72,7 +63,6 @@
         </view>
         <view class="select-box" @click="showNotifyModal = true">
           <text>{{ notifyMethod }}</text>
-          <!-- <image src="/static/icons/arrow-down.png" mode="aspectFit"></image> -->
         </view>
       </view>
 
@@ -103,7 +93,6 @@
         </view>
         <view class="select-box" @click="showAiModal = true">
           <text>{{ aiModel }}</text>
-          <!-- <image src="/static/icons/arrow-down.png" mode="aspectFit"></image> -->
         </view>
       </view>
     </view>
@@ -162,22 +151,33 @@
     <!-- 保存按钮 -->
     <view class="save-btn" @click="saveSettings">保存定制权重</view>
 
-    <!-- 类别选择弹窗 -->
-    <uni-popup ref="categoryPopup" mode="bottom">
-      <view class="popup-content">
-        <view class="popup-header">
-          <text>选择推送类别（多选）</text>
-          <text class="clear-btn" @click="clearCategories">清空</text>
+        <!-- 类别选择弹窗 -->
+    <view class="category-picker-mask" v-if="showCategoryPicker" @click="closeCategoryPicker">
+      <view class="category-picker-container" @click.stop>
+        <!-- 1. 头部固定区 -->
+        <view class="picker-header">
+          <text class="cancel" @click="closeCategoryPicker">取消</text>
+          <text class="title">选择推送类别</text>
+          <text class="confirm" @click="confirmCategorySelect">确定</text>
         </view>
-        <view class="popup-list">
-          <view class="popup-item" v-for="(cat, index) in categoryOptions" :key="index" @click="toggleCategory(cat)">
-            <checkbox :checked="selectedCategories.includes(cat)" />
-            <text>{{ cat }}</text>
+        <!-- 2. 内容滚动区 (添加 scroll-view 或设置 overflow) -->
+        <scroll-view scroll-y class="category-list-scroll">
+          <view class="category-list-inner">
+            <view 
+              class="category-item" 
+              v-for="cat in categoryOptions" 
+              :key="cat.id"
+              @click="toggleTempCategory(cat)"
+            >
+              <!-- 使用之前修复的判断方法 -->
+              <checkbox :checked="isCategorySelected(cat.id)" color="#4080ff" />
+              <text>{{ cat.tag_name }} - <text style="font-size: 20rpx;color: #ccc;">{{ cat.example }}</text></text>
+            </view>
           </view>
-          <view class="more-btn" @click="showMoreCategories">更多类别 ∨</view>
-        </view>
+        </scroll-view>
+
       </view>
-    </uni-popup>
+    </view>
   </view>
 </template>
 
