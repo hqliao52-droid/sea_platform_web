@@ -36,7 +36,7 @@
         <view 
           class="category-item" 
           v-for="item in categories" 
-          :key="item.id" 
+          :key="item.id"
           :class="{ 'active': currentCategoryId === item.id }"
           @click="switchCategory(item)"
         >
