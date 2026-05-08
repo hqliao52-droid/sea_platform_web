@@ -2,6 +2,8 @@ import {request} from '@/utils/request.js';
 import { getUserInfo } from '@/utils/user.js';
 import { getReadHistory } from '@/utils/history.js';
 import { streamRequest } from '@/utils/stream-request.js';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/atom-one-light.css'; 
 
 export default {
   data() {
@@ -25,12 +27,16 @@ export default {
       groupedSessions: [],
 
       inputText:'',
+      lastDeletedText:'',
+
       textareaHeight: 50, 
       maxLines: 4,
       lineHeight: 40, 
 
       currentSessionId: null,
       isStreaming: false,
+
+      mermaidDiagrams: {},
 
       // u-parse 的标签样式，用于在富文本里保持与气泡一致的字体/换行/列表展示
       bubbleTagStyle: {
@@ -47,12 +53,17 @@ export default {
         em: 'font-style:italic;',
         ol: 'margin:0;padding-left:44rpx;',
         ul: 'margin:0;padding-left:44rpx;',
-        li: 'margin:4rpx 0;'
+        li: 'margin:4rpx 0;',
+
+        pre: 'background:#f6f8fa;padding:16rpx;border-radius:8rpx;overflow-x:auto;margin:10rpx 0;',
+        code: 'font-family:monospace;font-size:24rpx;background:#f0f0f0;padding:2rpx 6rpx;border-radius:4rpx;'
       },
 
       scrollTop: 0, 
       recentHistory: [], 
       isHistoryExpanded: false,
+
+      selectedNewsIds: [],
 
     };
   },
@@ -65,6 +76,65 @@ export default {
   },
 
   methods: {
+    toggleNewsSelection(item) {
+      const id = item.id;
+      const index = this.selectedNewsIds.indexOf(id);
+      
+      if (index > -1) {
+        // 已选中，则取消选中
+        this.selectedNewsIds.splice(index, 1);
+      } else {
+        // 未选中，则加入
+        // 可选：限制最大选中数量，例如最多5篇
+        if (this.selectedNewsIds.length >= 5) {
+          uni.showToast({ title: '最多同时参考5篇文章', icon: 'none' });
+          return;
+        }
+        this.selectedNewsIds.push(id);
+      }
+    },
+    clearSelectedNews() {
+      this.selectedNewsIds = [];
+    },
+    clearInputWithBackup() {
+      if (!this.inputText) return;
+      
+      // 1. 备份当前内容
+      this.lastDeletedText = this.inputText;
+      
+      // 2. 清空输入框
+      this.inputText = '';
+      
+      // 3. 重置高度
+      this.textareaHeight = 50;
+      
+      // 4. 可选：给个轻微提示
+      uni.showToast({
+        title: '已暂存，可点击恢复',
+        icon: 'none',
+        duration: 500
+      });
+    },
+    clearInputWithbackUpBar(){
+      if (!this.lastDeletedText) return;
+      this.lastDeletedText = "";
+
+    },
+    restoreDeletedText() {
+      if (this.lastDeletedText) {
+        this.inputText = this.lastDeletedText;
+        // 恢复后清空暂存区，或者保留以便多次粘贴？通常清空比较好，避免混淆
+        // 这里选择保留，直到用户再次删除或手动清空，或者你可以选择清空：
+        // this.lastDeletedText = ''; 
+        
+        // 重新计算高度
+        this.$nextTick(() => {
+           // 触发一次 input 事件来重新计算高度，或者直接调用 onInput 模拟
+           const mockEvent = { detail: { value: this.inputText } };
+           this.onInput(mockEvent);
+        });
+      }
+    },
     onInput(e) {
       const value = e.detail.value;
       this.inputText = value;
@@ -98,84 +168,141 @@ export default {
     loadRecentHistory() {
       this.recentHistory = getReadHistory();
     },
-    testUpdate() {
-      // 测试响应式更新
-      if (this.messageList.length > 0) {
-        const lastMsg = this.messageList[this.messageList.length - 1];
-        if (lastMsg.role === 'assistant') {
-          lastMsg.content += '测试文本';
-          lastMsg.renderedHtml = this.renderMarkdownToHtml(lastMsg.content);
-          this.$forceUpdate();
-          console.log('测试更新后的内容:', lastMsg.content);
-        }
-      }
-    },
 
     // 简易 Markdown -> HTML（只覆盖你当前需求：加粗、换行、编号列表/列表项）
+    // 在 renderMarkdownToHtml 方法中，修改代码块和Mermaid的处理逻辑
+
     renderMarkdownToHtml(md) {
       if (!md) return '';
 
-      // 移除服务端控制标记，避免渲染成正文
       const src = String(md)
         .replace(/\[\[END\]\]/g, '')
         .replace(/\[\[ERROR\]\]/g, '')
         .replace(/\r\n/g, '\n');
 
-      const escapeHtml = (s) => {
-        return s
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
-      };
+      // 存储提取的代码块
+      const codeBlocks = [];
+      const mermaidBlocks = [];
+      
+      let processed = src;
+      
+      // 1. 提取Mermaid代码块 - 修复正则表达式，正确匹配结束标记
+      processed = processed.replace(/```mermaid\s*\n([\s\S]*?)```/g, (match, code) => {
+        const id = `MERMAID_${mermaidBlocks.length}`;
+        // 去除可能的尾部空白，但保留缩进
+        const cleanCode = code.replace(/\n+$/, '').trimEnd();
+        mermaidBlocks.push({
+          id,
+          code: cleanCode
+        });
+        // 返回一个占位符，用特殊标记包裹
+        return `\n<!--MERMAID_START--><div class="mermaid-placeholder" data-mermaid-id="${id}">${this.escapeHtml(cleanCode)}</div><!--MERMAID_END-->\n`;
+      });
+      
+      // 2. 提取普通代码块 - 同样修复正则表达式
+      processed = processed.replace(/```(\w*)\s*\n([\s\S]*?)```/g, (match, lang, code) => {
+        // 跳过mermaid（已经在上面处理了）
+        if (lang.toLowerCase() === 'mermaid') {
+          return match;
+        }
+        
+        const id = `CODE_${codeBlocks.length}`;
+        const cleanCode = code.replace(/\n+$/, '').trimEnd();
+        
+        // 高亮处理
+        let highlightedCode = '';
+        if (lang && hljs.getLanguage(lang)) {
+          try {
+            highlightedCode = hljs.highlight(cleanCode, { language: lang }).value;
+          } catch (e) {
+            highlightedCode = this.escapeHtml(cleanCode);
+          }
+        } else {
+          highlightedCode = this.escapeHtml(cleanCode);
+        }
+        
+        codeBlocks.push({
+          id,
+          lang: lang || 'text',
+          code: cleanCode,
+          highlighted: highlightedCode
+        });
+        
+        return `\n<!--CODEBLOCK_START--><div class="code-block-wrapper" data-code-id="${id}">
+          <div class="code-block-header">
+            <span class="code-lang">${lang || 'text'}</span>
+            <span class="code-copy-btn" data-code="${this.escapeHtml(cleanCode).replace(/"/g, '&quot;')}">复制</span>
+          </div>
+          <pre><code class="hljs ${lang ? 'language-' + lang : ''}">${highlightedCode}</code></pre>
+        </div><!--CODEBLOCK_END-->\n`;
+      });
+      
+      // 3. 处理行内代码（注意：不要影响已处理的代码块）
+      processed = processed.replace(/(?<!`)`([^`\n]+)`(?!`)/g, '<code inline>$1</code>');
 
-      const renderInline = (s) => {
-        let t = s;
-        // 加粗：**text**
-        t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        // 斜体：*text*
-        t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
-        return t;
-      };
-
-      // 行级解析：编号列表（1. xxx）优先，其它行默认当作普通文本逐行换行展示
-      const lines = src.split('\n');
+      // 4. 处理其他Markdown元素
+      const lines = processed.split('\n');
       let out = [];
       let inOl = false;
+      let inBlock = false; // 标记是否在特殊块中
 
       for (let i = 0; i < lines.length; i++) {
         const rawLine = lines[i];
-        const headerMatch = rawLine.match(/^(\#{1,6})\s+(.*)$/);
-        if (headerMatch) {
-          // 如果之前在列表中，先闭合列表
+        
+        // 检查是否是特殊块的开始/结束标记
+        if (rawLine.includes('<!--MERMAID_START-->') || rawLine.includes('<!--CODEBLOCK_START-->')) {
+          // 如果在列表中，先闭合
           if (inOl) {
             inOl = false;
             out.push('</ol>');
           }
-
-          const level = headerMatch[1].length; // # 的数量即级别
-          const content = headerMatch[2];
-          // 对标题内容进行 inline 渲染（支持加粗等）并转义
-          const safeContent = renderInline(escapeHtml(content));
-          out.push(`<h${level}>${safeContent}</h${level}>`);
+          inBlock = true;
+          // 移除注释标记，保留实际内容
+          const cleanLine = rawLine.replace(/<!--(?:MERMAID|CODEBLOCK)_START-->/g, '');
+          out.push(cleanLine);
           continue;
         }
+        
+        if (rawLine.includes('<!--MERMAID_END-->') || rawLine.includes('<!--CODEBLOCK_END-->')) {
+          const cleanLine = rawLine.replace(/<!--(?:MERMAID|CODEBLOCK)_END-->/g, '');
+          out.push(cleanLine);
+          inBlock = false;
+          continue;
+        }
+        
+        // 如果当前在代码块中，直接输出
+        if (inBlock) {
+          out.push(rawLine);
+          continue;
+        }
+        
+        // 标题处理
+        const headerMatch = rawLine.match(/^(\#{1,6})\s+(.*)$/);
+        if (headerMatch) {
+          if (inOl) {
+            inOl = false;
+            out.push('</ol>');
+          }
+          const level = headerMatch[1].length;
+          const content = this.renderInline(headerMatch[2]);
+          out.push(`<h${level}>${content}</h${level}>`);
+          continue;
+        }
+        
+        // 有序列表处理
         const line = rawLine || '';
         const m = line.match(/^\s*(\d+)\.\s+(.*)$/);
-
         if (m) {
           if (!inOl) {
             inOl = true;
             out.push('<ol>');
           }
           const content = m[2] ?? '';
-          const rawContent = rawLine.match(/^\s*\d+\.\s+(.*)$/)[1];
-          out.push('<li>' + renderInline(content) + '</li>');
+          out.push('<li>' + this.renderInline(content) + '</li>');
           continue;
         }
 
-        // 空行：如果在列表中就先结束列表
+        // 空行处理
         if (!line.trim()) {
           if (inOl) {
             inOl = false;
@@ -185,18 +312,55 @@ export default {
           continue;
         }
 
-        // 非列表行：列表结束后，普通段落逐行显示
+        // 非列表行
         if (inOl) {
           inOl = false;
           out.push('</ol>');
         }
 
-        const rawContent = rawLine;
-        out.push('<p>' + renderInline(line) + '</p>');
+        out.push('<p>' + this.renderInline(line) + '</p>');
       }
 
       if (inOl) out.push('</ol>');
+      
       return out.join('');
+    },
+
+    /**
+     * 行内元素渲染
+     */
+    renderInline(text) {
+      if (!text) return '';
+      let t = text;
+      // 先转义HTML
+      t = this.escapeHtml(t);
+      // 加粗：**text**
+      t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      // 斜体：*text*
+      t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      return t;
+    },
+
+    /**
+     * HTML转义
+     */
+    escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    },
+
+    /**
+     * 渲染Mermaid图表（如果平台支持）
+     * 注意：小程序环境可能不支持动态渲染Mermaid
+     */
+    renderMermaid(id, code) {
+      // 在小程序/H5环境中，Mermaid需要特殊处理
+      // 这里返回一个包含原始代码的pre标签，或者使用图片替代
+      return `<pre class="mermaid-code">${this.escapeHtml(code)}</pre>`;
     },
 
     // 流式渲染结束后，用后端“最终消息”刷新当前 assistant 气泡
@@ -230,15 +394,15 @@ export default {
     // 流式接收 LLM 输出
     startWS(taskId, aiIndex) {
       const that = this;
-
-      const ws = uni.connectSocket({
-        url: `ws://192.168.110.218:8000/chatMessage/ws/chat/${taskId}`,
+      
+      uni.connectSocket({
+        // url: `ws://192.168.110.218:8000/chatMessage/ws/chat/${taskId}`,
+        url: `ws://106.52.97.98:8000/chatMessage/ws/chat/${taskId}`,
         success() {
           console.log("WS连接发起成功");
         }
       });
 
-      // ❗注意：不是 ws.onOpen
       uni.onSocketOpen(() => {
         console.log("WS连接成功");
       });
@@ -252,6 +416,8 @@ export default {
         const newContent = (msg.content || "") + delta;
 
         that.$set(msg, "content", newContent);
+        
+        // 流式过程中的渲染（可能会被截断，但整体结构会在结束后重新渲染）
         that.$set(msg, "renderedHtml", that.renderMarkdownToHtml(newContent));
 
         that.scrollToBottom();
@@ -260,6 +426,12 @@ export default {
           console.log("WS结束");
           uni.closeSocket();
           that.isStreaming = false;
+          
+          // 流式结束后，重新完整渲染一次，确保代码块完整
+          setTimeout(() => {
+            that.$set(msg, "renderedHtml", that.renderMarkdownToHtml(msg.content));
+            that.$forceUpdate();
+          }, 100);
         }
       });
 
@@ -270,8 +442,6 @@ export default {
       uni.onSocketClose(() => {
         console.log("WS关闭");
       });
-
-      return ws;
     },
     // 发送消息 + 接收流式输出
     async sendMessage() {
@@ -289,11 +459,15 @@ export default {
         if (!this.currentSessionId) return; // 创建失败则中止
       }
 
+      const llm_refer_data = this.getReferencedTitles();
+
       // 1. 先加用户消息到列表
       const userMsg = {
         role: "user",
         content: content,
-        created_time: this.formatTimeShort(new Date())
+        created_time: this.formatTimeShort(new Date()),
+        llm_refer_data: llm_refer_data, 
+        isReferencesExpanded: false
       };
       this.messageList.push(userMsg);
       
@@ -303,6 +477,7 @@ export default {
         role: "assistant",
         content: "",
         renderedHtml: "",
+        llm_refer_data:[],
         created_time: this.formatTimeShort(new Date()),
         suggestions: [],
         sources: []
@@ -314,12 +489,16 @@ export default {
       
       const aiIndex = aiMsgIndex; // 保存索引供后续使用
 
-      this.inputText = "";
-      this.isStreaming = true;
-      this.scrollToBottom();
+      const currentInput = this.inputText;
+      const currentNewsIds = [...this.selectedNewsIds]; // 拷贝一份用于发送
+      console.log("发送消息:", currentInput, "关联新闻ID:", currentNewsIds);
 
       this.inputText = "";
       this.textareaHeight = 50;
+      this.selectedNewsIds = [];
+
+      this.isStreaming = true;
+      this.scrollToBottom();
 
       try {
         // 调用 insert_message 获取 task_id
@@ -329,7 +508,8 @@ export default {
           data: {
             "query": content,
             "user_id": parseInt(this.userInfo.id),
-            "session_id": this.currentSessionId || 0
+            "session_id": this.currentSessionId || 0,
+            "news_ids": currentNewsIds 
           }
         });
 
@@ -344,7 +524,18 @@ export default {
         this.startWS(task_id, aiIndex);
 
       } catch (err) {
+        console.error('--- 发送消息详细错误 ---');
         console.error(err);
+
+        if (err.data && err.data.msg) {
+          console.error('后端报错信息:', err.data.msg);
+          uni.showToast({ title: err.data.msg, icon: 'none' });
+        } else if (err.message) {
+          console.error('前端捕获错误:', err.message);
+          uni.showToast({ title: err.message || '发送失败', icon: 'none' });
+        } else {
+          uni.showToast({ title: '网络异常或未知错误', icon: 'none' });
+        }
         this.isStreaming = false;
         // 移除失败的 AI 消息
         if (this.messageList[aiIndex]) {
@@ -352,6 +543,18 @@ export default {
         }
         uni.showToast({ title: err.data?.msg || '发送失败', icon: 'none' });
       }
+    },
+    toggleUserReference(index) {
+      if (this.messageList[index]) {
+        // 使用 $set 确保响应式更新
+        this.$set(this.messageList[index], 'isReferencesExpanded', !this.messageList[index].isReferencesExpanded);
+      }
+    },
+    getReferencedTitles() {
+      if (!this.selectedNewsIds.length) return [];
+      return this.recentHistory
+        .filter(item => this.selectedNewsIds.includes(item.id))
+        .map(item => item.title);
     },
     async loadUserInfo(){
       const userInfo = getUserInfo();

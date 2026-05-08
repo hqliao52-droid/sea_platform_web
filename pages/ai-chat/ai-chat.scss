@@ -178,7 +178,260 @@
           font-size: 28rpx;
           line-height: 1.6;
           word-break: break-all; // 防止长文本溢出
+          max-width: 100%;
+          overflow-x: hidden;
+          user-select: text;
+          -webkit-user-select: text;
+          -moz-user-select: text;
+          -ms-user-select: text;
+          
+          // 允许长按选择（移动端）
+          -webkit-touch-callout: default;
 
+          .user-message-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+          }
+          .bubble-text {
+            /* 确保文本正常显示 */
+            white-space: pre-wrap;
+          }
+          .user-references {
+            margin-top: 16rpx;
+            border-radius: 8rpx;
+            overflow: hidden;
+            font-size: 24rpx;
+            
+            /* 折叠态样式 */
+            .ref-collapsed {
+              display: flex;
+              align-items: center;
+              background-color: rgba(255, 255, 255, 0.2); /* 半透明白色，在蓝色背景上可见 */
+              padding: 8rpx 12rpx;
+              border-radius: 20rpx;
+              color: #fff;
+              cursor: pointer;
+              
+              .ref-icon {
+                margin-right: 8rpx;
+                font-size: 24rpx;
+              }
+              
+              .ref-summary {
+                flex: 1;
+              }
+              
+              .ref-arrow {
+                font-size: 20rpx;
+                transform: rotate(180deg); /* 默认向下 */
+                transition: transform 0.2s;
+              }
+            }
+
+            /* 展开态样式 */
+            .ref-expanded {
+              background-color: rgba(0, 0, 0, 0.1); /* 稍微深一点的背景 */
+              border-radius: 8rpx;
+              padding: 12rpx;
+              
+              .ref-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8rpx;
+                color: rgba(255, 255, 255, 0.9);
+                font-weight: 500;
+                cursor: pointer;
+                
+                .ref-arrow {
+                  font-size: 20rpx;
+                  &.expanded {
+                    transform: rotate(0deg);
+                  }
+                }
+              }
+              
+              .ref-list {
+                .ref-item {
+                  display: flex;
+                  align-items: flex-start;
+                  margin-bottom: 6rpx;
+                  color: rgba(255, 255, 255, 0.85);
+                  line-height: 1.4;
+                  
+                  .ref-dot {
+                    margin-right: 8rpx;
+                    opacity: 0.7;
+                  }
+                  
+                  .ref-text {
+                    flex: 1;
+                    // 限制最多显示2行，超出省略
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  }
+                }
+              }
+            }
+          }
+          ::v-deep .code-block-wrapper {
+            margin: 20rpx 0;
+            border-radius: 12rpx;
+            overflow: hidden;
+            border: 1rpx solid #e1e4e8;
+            background-color: #fff;
+            max-width: 100%; // 不超过父容器宽度
+            width: 100%;
+            
+            .code-block-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 12rpx 20rpx;
+              background-color: #f6f8fa;
+              border-bottom: 1rpx solid #e1e4e8;
+              // 防止header内容溢出
+              max-width: 100%;
+
+              .code-lang {
+                font-size: 24rpx;
+                color: #666;
+                font-weight: 500;
+                flex-shrink: 0; // 防止被压缩
+              }
+              
+              .code-copy-btn {
+                font-size: 22rpx;
+                color: #007aff;
+                padding: 4rpx 12rpx;
+                border-radius: 6rpx;
+                background-color: #fff;
+                border: 1rpx solid #e1e4e8;
+                flex-shrink: 0; // 防止被压缩
+                margin-left: 10rpx;
+                cursor: pointer;
+              }
+            }
+
+            pre {
+              margin: 0;
+              padding: 24rpx;
+              background-color: #fff;
+              // 关键：横向滚动
+              overflow-x: auto;
+              overflow-y: hidden;
+              -webkit-overflow-scrolling: touch;
+              max-width: 100%;
+
+              // 自定义滚动条样式
+              &::-webkit-scrollbar {
+                height: 6rpx;
+              }
+
+              &::-webkit-scrollbar-thumb {
+                background-color: #ccc;
+                border-radius: 3rpx;
+              }
+
+              &::-webkit-scrollbar-track {
+                background-color: #f5f5f5;
+              }
+
+              code {
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-size: 24rpx;
+                line-height: 1.6;
+                color: #333;
+                background: transparent;
+                padding: 0;
+                // 关键：不换行，保持代码格式
+                white-space: pre;
+                word-break: normal;
+                word-wrap: normal;
+                // 确保代码内容可以超出pre容器
+                display: inline-block;
+                min-width: 100%;
+                
+                &.hljs {
+                  background: transparent;
+                  padding: 0;
+                }
+              }
+            }
+          }
+          
+          ::v-deep .mermaid-placeholder {
+            margin: 20rpx 0;
+            padding: 24rpx;
+            background-color: #f8f9fa;
+            border-radius: 12rpx;
+            border: 1rpx solid #e1e4e8;
+            // 关键：横向滚动
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+
+            &::-webkit-scrollbar {
+              height: 6rpx;
+            }
+
+            &::-webkit-scrollbar-thumb {
+              background-color: #ccc;
+              border-radius: 3rpx;
+            }
+
+            &::-webkit-scrollbar-track {
+              background-color: #f5f5f5;
+            }
+
+            // Mermaid内容
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 24rpx;
+            line-height: 1.6;
+            // 不换行
+            white-space: pre;
+            word-break: normal;
+            word-wrap: normal;
+            color: #666;
+            position: relative;
+
+            // Mermaid标识
+            &::before {
+              content: '📊 Mermaid 图表';
+              display: block;
+              font-size: 22rpx;
+              color: #999;
+              margin-bottom: 12rpx;
+              padding-bottom: 12rpx;
+              border-bottom: 1rpx solid #e1e4e8;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+              white-space: normal; // 允许标题正常换行
+            }
+          }
+
+          ::v-deep code[inline] {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 26rpx;
+            background-color: #f0f0f0;
+            color: #e74c3c;
+            padding: 2rpx 8rpx;
+            border-radius: 6rpx;
+            word-break: break-all;
+            white-space: normal;
+          }
+          
+          // 确保所有内容不超出气泡
+          ::v-deep * {
+            max-width: 100%;
+            box-sizing: border-box;
+          }
           .suggestions {
             margin-top: 20rpx;
 
@@ -317,6 +570,37 @@
     flex-direction: column;
     justify-content: flex-end;
 
+    .deleted-backup-bar {
+      display: flex;
+      align-items: center;
+      padding: 10rpx 20rpx;
+      margin-bottom: 10rpx;
+      background-color: #fffbe6; /* 浅黄色背景，提示警告/暂存 */
+      border: 1rpx solid #ffe58f;
+      border-radius: 12rpx;
+      font-size: 24rpx;
+      color: #d48806;
+      
+      .backup-icon {
+        font-size: 28rpx;
+        margin-right: 10rpx;
+        font-weight: bold;
+      }
+      
+      .backup-text {
+        margin-right: 10rpx;
+        white-space: nowrap;
+      }
+      
+      .backup-preview {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #ad6800;
+      }
+    }
+
     .recent-read-section {
       margin-bottom: 10rpx;
       padding: 0 10rpx;
@@ -383,6 +667,7 @@
           padding-bottom: 10rpx; /* 防止内容贴底 */
 
           .history-item {
+            position: relative; /* 为角标定位做准备 */
             flex: 0 0 calc(50% - 8rpx); 
             max-width: calc(50% - 8rpx);
             
@@ -392,6 +677,16 @@
             box-sizing: border-box;
             border: 1rpx solid #eee;
             transition: all 0.2s;
+
+            /* 【新增】选中态样式 */
+            &.is-selected {
+              background-color: #e6f7ff; /* 浅蓝色背景 */
+              border-color: #1890ff;     /* 蓝色边框 */
+              
+              .history-title {
+                color: #1890ff;          /* 文字变蓝 */
+              }
+            }
 
             &:active {
               background-color: #eef2f7;
@@ -408,15 +703,26 @@
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
+              padding-right: 30rpx; /* 防止文字被角标遮挡 */
             }
 
-            .history-source {
-              display: block;
-              font-size: 22rpx;
-              color: #999;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
+            /* 【新增】选中角标（小红点/数字） */
+            .selected-badge {
+              position: absolute;
+              top: -10rpx;
+              right: -10rpx;
+              min-width: 32rpx;
+              height: 32rpx;
+              line-height: 32rpx;
+              text-align: center;
+              background-color: #ff4d4f;
+              color: #fff;
+              font-size: 20rpx;
+              border-radius: 16rpx;
+              border: 2rpx solid #fff;
+              box-shadow: 0 2rpx 8rpx rgba(255, 77, 79, 0.4);
+              z-index: 1;
+              padding: 0 8rpx;
             }
           }
         }
@@ -475,6 +781,7 @@
       border-radius: 20rpx;
       padding: 10rpx 20rpx;
       min-height: 50rpx;
+      position: relative; 
 
       .input-textarea {
         flex: 1;
@@ -500,26 +807,58 @@
           border-radius: 4rpx;
         }
       }
-
-      .send-btn {
-        width: 60rpx;
-        height: 60rpx;
-        margin-left: 10rpx;
-        background-color: #007aff;
-        border-radius: 50%;
+      ::v-deep .textarea-placeholder {
+        color: #999;
+        font-size: 28rpx;
+      }
+      
+      .input-actions {
         display: flex;
         align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
+        margin-left: 10rpx;
+        height: 60rpx; /* 与发送按钮高度一致 */
 
-        image {
-          width: 30rpx;
-          height: 30rpx;
+
+
+        .send-btn {
+          width: 60rpx;
+          height: 60rpx;
+          background-color: #007aff;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+
+          image {
+            width: 30rpx;
+            height: 30rpx;
+          }
+          &.disabled {
+            background-color: #ccc;
+            opacity: 0.6;
+          }
         }
-        &.disabled {
-          background-color: #ccc;
-          opacity: 0.6;
-        }
+      }
+    }
+    /* 【新增】删除图标按钮 */
+    .action-icon-btn ,.deleted-icon-btn{
+      width: 30rpx;
+      height: 30rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10rpx;
+      
+      image {
+        width: 36rpx;
+        height: 36rpx;
+        opacity: 0.6;
+      }
+      
+      &:active {
+        opacity: 1;
+        transform: scale(0.95);
       }
     }
 
@@ -656,7 +995,4 @@
       visibility: visible;
     }
   }
-
-
-
 }

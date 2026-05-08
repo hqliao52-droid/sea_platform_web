@@ -3,7 +3,7 @@
     <!-- 企业信息卡片 -->
     <view class="company-card">
       <view class="company-header">
-        <view class="avatar">
+        <view class="avatar" @click="previewAvatar">
           <image v-bind:src="avatar" mode="aspectFill"></image>
           <view class="status-dot"></view>
         </view>
@@ -130,6 +130,28 @@
 
     <!-- 退出账号按钮 -->
     <view class="logout-btn" @click="logout()">退出当前账号</view>
+
+    <!-- 【新增】自定义头像预览弹窗 -->
+    <view class="avatar-preview-modal" v-if="showAvatarPreview" @click="closeAvatarPreview">
+      <!-- 背景遮罩 -->
+      <view class="modal-mask"></view>
+      
+      <!-- 内容区域 -->
+      <view class="modal-content" @click.stop>
+        <image :src="avatar" mode="aspectFit" class="preview-image"></image>
+        
+        <view class="modal-actions">
+          <view class="action-btn change-btn" @click="handleChangeAvatarFromPreview">
+            <text class="btn-icon">📷</text>
+            <text>修改头像</text>
+          </view>
+          <view class="action-btn close-btn" @click="closeAvatarPreview">
+            <text class="btn-icon">✕</text>
+            <text>关闭</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
