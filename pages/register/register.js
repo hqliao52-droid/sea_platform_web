@@ -13,7 +13,7 @@ export default {
 
       },
       avatarUrl: '',
-      loading: false
+      loading: false,
     }
   },
   methods: {
@@ -36,7 +36,7 @@ export default {
 
       // 上传文件 不要手动加 header！！！
       uni.uploadFile({
-        url: 'http://192.168.110.218:8000/file/upload_file',
+        url: 'http://106.52.97.98:8000/file/upload_file',
         filePath: filePath,
         name: 'file',
         method: 'POST',

@@ -5,7 +5,7 @@
  */
 
 const HISTORY_KEY = 'recent_read_history';
-const MAX_HISTORY_COUNT = 3;
+const MAX_HISTORY_COUNT = 4;
 
 /**
  * 添加阅读记录

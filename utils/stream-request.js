@@ -1,6 +1,7 @@
 // utils/stream-request.js
 
-const baseURL = 'http://192.168.110.218:8000';
+const baseURL = 'http://106.52.97.98:8000';
+// const baseURL = 'http://192.168.110.218:8000';
 
 export function streamRequest({ url, onChunk, onEnd, onError }) {
   const token = uni.getStorageSync('token');
