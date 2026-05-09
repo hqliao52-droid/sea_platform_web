@@ -51,6 +51,11 @@ export default {
   },
 
   methods: {
+    goToLogin() {
+      uni.navigateTo({
+        url: '/pages/login/login'
+      });
+    },
     async switchCategory(item){
       if( item === "all"){
         this.categoryId = null

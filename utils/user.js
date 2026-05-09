@@ -4,9 +4,13 @@
  */
 export function getUserInfo() {
   try {
-    const userInfoStr = uni.getStorageSync('userInfo');
-    if (userInfoStr) {
-      return JSON.parse(userInfoStr);
+    const userInfo = uni.getStorageSync('userInfo');
+    if (userInfo && typeof userInfo === 'object') {
+      return userInfo;
+    }
+    console.log('用户信息：', userInfo);
+    if (userInfo && typeof userInfo === 'string') {
+      return JSON.parse(userInfo);
     }
   } catch (e) {
     console.error('解析用户信息失败', e);

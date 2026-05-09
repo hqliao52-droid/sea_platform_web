@@ -75,13 +75,13 @@
       <view class="ai-rule-card">
         <view class="tag-row">
           <view class="tag" v-for="tag in ruleTags" :key="tag">{{ tag }}</view>
-          <view class="add-tag">+ 添加领域</view>
+          <!-- <view class="add-tag">+ 添加领域</view> -->
         </view>
         <view class="rule-summary">
           <text class="summary-title">AI 策略摘要：</text>
           系统已为您配置基于“中东制造”与“拉美清关”的高优先级过滤规则。每日 09:00 将同步全球汇率波动影响分析。
         </view>
-        <view class="edit-btn">修改推送权重</view>
+        <view class="edit-btn" @click="goToPersonalize">修改推送权重</view>
       </view>
     </view>
 
@@ -92,7 +92,7 @@
           <view class="title-icon">⏱</view>
           推送历史与导出
         </view>
-        <view class="view-all">查看全部</view>
+        <view class="view-all" @click="showPushHistroy">查看全部</view>
       </view>
       <view class="history-card">
         <view class="history-header">

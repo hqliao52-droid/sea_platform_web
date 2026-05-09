@@ -18,14 +18,14 @@ export default {
       ruleTags: ['东南亚市场', '跨境电商', '合规政策'],
       // 推送历史列表
       historyList: [
-        { date: '11-20', articles: 12, quality: 94 },
-        { date: '11-19', articles: 8, quality: 88 },
-        { date: '11-18', articles: 15, quality: 91 }
+        // { date: '11-20', articles: 12, quality: 94 },
+        // { date: '11-19', articles: 8, quality: 88 },
+        // { date: '11-18', articles: 15, quality: 91 }
       ],
       // 底部菜单列表
       menuList: [
-        { icon: '👥', title: '企业信息管理' },
-        { icon: '🛡', title: '安全与隐私设置' }
+        // { icon: '👥', title: '企业信息管理' },
+        // { icon: '🛡', title: '安全与隐私设置' }
       ]
     };
   },
@@ -34,6 +34,11 @@ export default {
     this.loadUserInfo();
   },
   methods:{
+    showPushHistroy(){
+      uni.navigateTo({
+        url: '/pages/pushHistory/pushHistory'
+      });
+    },
     previewAvatar() {
       if (!this.avatar) return;
       this.showAvatarPreview = true;
@@ -92,43 +97,51 @@ export default {
         }
       });
     },
+    goToPersonalize() {
+      uni.navigateTo({
+        url: '/pages/personalize/personalize'
+      });
+    },
     async updateUserAvatar(newUrl) {
+      console.log('更新用户头像：', newUrl);
       try {
-        // 1. 调用后端接口更新用户信息 (假设有一个 update_profile 接口)
-        // 如果没有单独接口，可能需要调用 /user/update_info 等
+        // 1. 调用后端接口更新用户信息
         const res = await request({
-          url: '/user/update_avatar', // 【请根据实际后端接口修改】
-          method: 'PUT', // 或 POST
+          url: '/user/update_info', 
+          method: 'PUT',
           data: {
             avatar: newUrl
           }
         });
 
-        if (res.code === 200 || res.code === '200') {
-          // 2. 更新前端显示
+        // 2. 判断业务逻辑是否成功 (假设 code 为 '200' 或 200 表示成功)
+        if (res.code === '200' || res.code === 200) {
+          
+          // 3. 更新前端页面显示
           this.avatar = newUrl;
           
-          // 3. 更新本地缓存的用户信息，保证下次进入页面也是新头像
+          // 4. 更新本地缓存的用户信息，保证下次进入页面或刷新时也是新头像
           const userInfo = getUserInfo();
           if (userInfo) {
             userInfo.avatar = newUrl;
             uni.setStorageSync('userInfo', userInfo);
+            console.log('本地用户信息已更新');
           }
           
           uni.showToast({ title: "头像修改成功", icon: 'success' });
         } else {
+          // 业务逻辑失败（如后端返回 code: 500 或其他错误码）
           uni.showToast({ title: res.msg || '更新失败', icon: 'none' });
         }
       } catch (err) {
+        // 网络错误或请求异常
         console.error('Update Avatar Error:', err);
-        uni.showToast({ title: '网络异常', icon: 'none' });
+        uni.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
       }
     },
-
     // ... 原有的 loadUserInfo 和 logout 保持不变
     async loadUserInfo(){
       const userInfo = getUserInfo();
-      console.log('用户信息：', userInfo);
       if(userInfo){
         this.nikeName = userInfo.nickname;
         this.avatar = userInfo.avatar || '/static/images/default-avatar.png';
@@ -137,18 +150,6 @@ export default {
         // uni.redirectTo({ url: '/pages/login/login' });
       }
     },
-    async loadUserInfo(){
-      const userInfo = getUserInfo();
-      console.log('用户信息：', userInfo);
-      if(userInfo){
-        this.nikeName = userInfo.nickname;
-        this.avatar = userInfo.avatar || '/static/images/default-avatar.png';
-      }else{
-        // 未登录
-        // uni.redirectTo({ url: '/pages/login/login' });
-      }
-    },
-
     async logout(){
         try{
             const res = await request({

@@ -139,12 +139,7 @@ export default {
     },
     resetWeight() {
       this.weightList = [
-        { name: '全球政策与法规', value: 80, color: '#4080ff', icon: '/static/icons/weight1.png' },
-        { name: '行业趋势与洞察', value: 70, color: '#9370db', icon: '/static/icons/weight2.png' },
-        { name: '市场机会与商机', value: 60, color: '#39c5bb', icon: '/static/icons/weight3.png' },
-        { name: '技术创新与工具', value: 50, color: '#ff9800', icon: '/static/icons/weight4.png' },
-        { name: '竞争动态与企业', value: 40, color: '#4080ff', icon: '/static/icons/weight5.png' },
-        { name: '重要新闻与事件', value: 30, color: '#7b68ee', icon: '/static/icons/weight6.png' }
+        { name: '全球政策与法规', value: 80, color: '#4080ff'}
       ]
       uni.showToast({ title: '已重置', icon: 'success' })
     },

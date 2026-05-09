@@ -16,7 +16,7 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "Go Global AI",
+        "navigationBarTitleText": "首页",
         "navigationStyle": "custom",
         "onReachBottomDistance": 50
       }
@@ -54,7 +54,20 @@
         "onReachBottomDistance": 50,
         "enablePullDownRefresh": false
       }
-}
+    },
+    {
+      "path": "pages/pushHistory/pushHistory",
+      "style": {
+         /* 
+          配置说明：
+          1. onReachBottomDistance: 上拉加载阈值
+          2. enablePullDownRefresh: 是否允许下拉刷新
+        */
+        "navigationBarTitleText": "推送历史",
+        "onReachBottomDistance": 50,
+        "enablePullDownRefresh": false
+      }
+    }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
