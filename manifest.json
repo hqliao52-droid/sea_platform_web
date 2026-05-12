@@ -1,36 +1,36 @@
 {
-    "name": "sea_platform",
-    "appid": "__UNI__9276FBD",
-    "description": "",
-    "versionName": "1.0.0",
-    "versionCode": "100",
-    "transformPx": false,
+    "name" : "AI 资讯平台",
+    "appid" : "__UNI__9276FBD",
+    "description" : "",
+    "versionName" : "1.0.0",
+    "versionCode" : "100",
+    "transformPx" : false,
     /* 5+App特有相关 */
-    "app-plus": {
-        "usingComponents": true,
-        "nvueStyleCompiler": "uni-app",
-        "compilerVersion": 3,
-        "splashscreen": {
-            "alwaysShowBeforeRender": true,
-            "waiting": true,
-            "autoclose": true,
-            "delay": 0
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
         },
-        "networkTimeout": {
-            "request": 60000,
-            "connectSocket": 60000,
-            "uploadFile": 60000,
-            "downloadFile": 60000
+        "networkTimeout" : {
+            "request" : 60000,
+            "connectSocket" : 60000,
+            "uploadFile" : 60000,
+            "downloadFile" : 60000
         },
         /* 模块配置 */
-        "modules": {
-            "Geolocation": {}
+        "modules" : {
+            "Camera" : {}
         },
         /* 应用发布信息 */
-        "distribute": {
+        "distribute" : {
             /* android打包配置 */
-            "android": {
-                "permissions": [
+            "android" : {
+                "permissions" : [
                     "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
                     "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
@@ -49,73 +49,100 @@
                 ]
             },
             /* ios打包配置 */
-            "ios": {},
+            "ios" : {
+                "dSYMs" : false
+            },
             /* SDK配置 */
-            "sdkConfigs": {
-                "geolocation": {
-                    "amap": {
-                        "name": "amap0nusQ1EE",
-                        "__platform__": [
-                            "android"
-                        ],
-                        "appkey_ios": "",
-                        "appkey_android": "34e67a2a489dd7365c8c7e5b0a9b631b"
+            "sdkConfigs" : {
+                "geolocation" : {}
+            },
+            "icons" : {
+                "android" : {
+                    "hdpi" : "unpackage/res/icons/72x72.png",
+                    "xhdpi" : "unpackage/res/icons/96x96.png",
+                    "xxhdpi" : "unpackage/res/icons/144x144.png",
+                    "xxxhdpi" : "unpackage/res/icons/192x192.png"
+                },
+                "ios" : {
+                    "appstore" : "unpackage/res/icons/1024x1024.png",
+                    "ipad" : {
+                        "app" : "unpackage/res/icons/76x76.png",
+                        "app@2x" : "unpackage/res/icons/152x152.png",
+                        "notification" : "unpackage/res/icons/20x20.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "proapp@2x" : "unpackage/res/icons/167x167.png",
+                        "settings" : "unpackage/res/icons/29x29.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "spotlight" : "unpackage/res/icons/40x40.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png"
+                    },
+                    "iphone" : {
+                        "app@2x" : "unpackage/res/icons/120x120.png",
+                        "app@3x" : "unpackage/res/icons/180x180.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "notification@3x" : "unpackage/res/icons/60x60.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "settings@3x" : "unpackage/res/icons/87x87.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png",
+                        "spotlight@3x" : "unpackage/res/icons/120x120.png"
                     }
                 }
             }
         }
     },
     /* 快应用特有相关 */
-    "quickapp": {},
+    "quickapp" : {},
     /* 小程序特有相关 */
-    "mp-weixin": {
-        "appid": "",
-        "setting": {
-            "urlCheck": false
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : false
         },
-        "usingComponents": true
+        "usingComponents" : true
     },
-    "mp-alipay": {
-        "usingComponents": true
+    "mp-alipay" : {
+        "usingComponents" : true
     },
-    "mp-baidu": {
-        "usingComponents": true
+    "mp-baidu" : {
+        "usingComponents" : true
     },
-    "mp-toutiao": {
-        "usingComponents": true
+    "mp-toutiao" : {
+        "usingComponents" : true
     },
-    "uniStatistics": {
-        "enable": false
+    "uniStatistics" : {
+        "enable" : false
     },
-    "vueVersion": "2",
-    "h5": {
-        "sdkConfigs": {
-            "maps": {
-                "amap": {
-                    "key": "34e67a2a489dd7365c8c7e5b0a9b631b",
-                    "securityJsCode": "",
-                    "serviceHost": ""
+    "vueVersion" : "2",
+    "h5" : {
+        "sdkConfigs" : {
+            "maps" : {
+                "amap" : {
+                    "key" : "34e67a2a489dd7365c8c7e5b0a9b631b",
+                    "securityJsCode" : "",
+                    "serviceHost" : ""
                 }
             }
         },
-        "devServer": {
-            "port": 8081,
-            "disableHostCheck": true,
-            "proxy": {
-                "/chatMessage": {
-                    "target": "http://106.52.97.98:8000", // 【关键】这里填你真实的后端地址
-                    "changeOrigin": true,
-                    "secure": false,
-                    "pathRewrite": {
-                        "^/chatMessage": "/chatMessage" // 保持路径不变，或者根据后端需求调整
+        "devServer" : {
+            "port" : 8081,
+            "disableHostCheck" : true,
+            "proxy" : {
+                "/chatMessage" : {
+                    "target" : "http://106.52.97.98:8000", // 【关键】这里填你真实的后端地址
+                    "changeOrigin" : true,
+                    "secure" : false,
+                    "pathRewrite" : {
+                        "^/chatMessage" : "/chatMessage" // 保持路径不变，或者根据后端需求调整
                     }
                 },
-                "/session": {
-                    "target": "http://106.52.97.98:8000", // 如果会话接口也在同一个后端
-                    "changeOrigin": true,
-                    "secure": false
+                "/session" : {
+                    "target" : "http://106.52.97.98:8000", // 如果会话接口也在同一个后端
+                    "changeOrigin" : true,
+                    "secure" : false
                 }
             }
         }
-    }
+    },
+    "fallbackLocale" : "zh-Hans",
+    "locale" : "zh-Hans"
 }
