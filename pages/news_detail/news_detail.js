@@ -5,6 +5,7 @@ export default {
   data() {
     return {
       news_id: '',
+      rss_id: '',
       newsData:{},
       news_title: '',
       // AI核心摘要列表
@@ -39,13 +40,25 @@ export default {
         }
       ],
       articleInfo:null,
+      // 动态提示语
+      dynamicHintKeyword: '',
+      // 定时器，用户页面卸载时清除
+      hintTimer: null,
+      inputValue:''
     };
+  },
+  onReady() {
+    this.startHintRotation();
+  },
+  onUnload() {
+    this.stopHintRotation();
   },
   onLoad (options){
     this.news_id = options.id;
+    this.rss_id = options.rss_id;
     console.log('news_id:',this.news_id)
 
-    this.getNewsDetail(this.news_id);
+    this.getNewsDetail(this.news_id,this.rss_id);
   },
   computed:{
     processedContent() {
@@ -61,6 +74,53 @@ export default {
     }
   },
   methods: {
+    fillInputFromHint() {
+      if (!this.dynamicHintKeyword) return;
+      
+      // 组合完整的问题文案
+      const question = `这篇文章对 ${this.dynamicHintKeyword} 有什么具体影响？`;
+      this.inputValue = question;
+      
+      // 可选：给予轻微震动反馈或 Toast 提示，增强交互感
+      // uni.vibrateShort(); 
+    },
+    startHintRotation() {
+      // 先执行一次，避免等待3秒才显示
+      this.updateRandomKeyword();
+      
+      // 设置定时器，每3秒执行一次
+      this.hintTimer = setInterval(() => {
+        this.updateRandomKeyword();
+      }, 3000);
+    },
+    stopHintRotation() {
+      if (this.hintTimer) {
+        clearInterval(this.hintTimer);
+        this.hintTimer = null;
+      }
+    },
+    updateRandomKeyword() {
+      if (!this.keywordList || this.keywordList.length === 0) {
+        this.dynamicHintKeyword = '相关行业'; // 默认兜底文案
+        return;
+      let newIndex;
+      let attempts = 0;
+      // 避免连续两次随机到同一个词
+      do {
+        newIndex = Math.floor(Math.random() * this.keywordList.length);
+        attempts++;
+      } while (
+        this.keywordList[newIndex] === this.dynamicHintKeyword && 
+        this.keywordList.length > 1 && 
+        attempts < 5
+      );
+
+      this.dynamicHintKeyword = this.keywordList[newIndex];
+    }
+      
+      const randomIndex = Math.floor(Math.random() * this.keywordList.length);
+      this.dynamicHintKeyword = this.keywordList[randomIndex];
+    },
     goBack() {
       uni.navigateBack();
     },
@@ -182,6 +242,8 @@ export default {
             this.news_title = res.data.title;
             this.content = res.data.content || '';
             this.keywordList = res.data.ai_origin_output?.keywords || [];
+            // 如果关键词列表更新了，立即更新一次显示，防止前3秒显示空或默认值
+            this.updateRandomKeyword();
             if(res.data.ai_origin_output.policy_risk.market_risk !== "未提及"){
               this.market_risk = res.data.ai_origin_output?.policy_risk.market_risk || '';
               this.policy_compliance = res.data.ai_origin_output?.policy_risk.policy_compliance || '';
@@ -202,7 +264,7 @@ export default {
 
             try{
               const res_rss = await request({
-                url: '/rss/get_by_url?url='+res.data.origin_entry.source,
+                url: '/rss/get_by_id?id=' + this.rss_id,
               })
               if (res_rss.code === 200 || res_rss.code === '200') {
                 this.rssData = res_rss.data

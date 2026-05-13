@@ -1,0 +1,310 @@
+.account-setting-container {
+  padding: 20rpx;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+
+  .section {
+    background-color: #fff;
+    border-radius: 16rpx;
+    margin-bottom: 20rpx;
+    padding: 0 30rpx;
+
+    .form-item {
+      padding: 30rpx 0;
+      border-bottom: 1rpx solid #f0f0f0;
+      display: flex;
+      flex-direction: column;
+
+      &.avatar-item {
+        align-items: center; // 确保 label 和内容整体对齐
+        
+        .avatar-display-area {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          margin-top: 10rpx;
+
+          .avatar-img {
+            width: 160rpx;
+            height: 160rpx;
+            border-radius: 50%;
+            background-color: #eee;
+            border: 2rpx solid #f0f0f0;
+            margin-bottom: 16rpx;
+            
+            // 增加点击反馈
+            &:active {
+              opacity: 0.8;
+            }
+          }
+
+          .change-text {
+            font-size: 26rpx;
+            color: #007aff;
+            padding: 10rpx 20rpx;
+            
+            &:active {
+              opacity: 0.7;
+            }
+          }
+        }
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .label {
+        font-size: 30rpx;
+        color: #333;
+        margin-bottom: 20rpx;
+        font-weight: 500;
+      }
+
+      // 头像样式
+      .avatar-wrapper {
+        display: flex;
+        align-items: center;
+
+        .avatar {
+          width: 120rpx;
+          height: 120rpx;
+          border-radius: 50%;
+          background-color: #eee;
+        }
+        .edit-tip {
+          margin-left: 20rpx;
+          font-size: 26rpx;
+          color: #666;
+        }
+      }
+
+      // 普通输入框
+      .input {
+        height: 70rpx;
+        font-size: 28rpx;
+        padding: 0 10rpx;
+        border-bottom: 1rpx solid #eee;
+      }
+
+      // 输入框 + 按钮行
+      .input-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .text-content {
+          font-size: 28rpx;
+          color: #333;
+        }
+        .input {
+          flex: 1;
+          margin-right: 20rpx;
+        }
+        .edit-btn, .code-btn {
+          font-size: 26rpx;
+          color: #007aff;
+          white-space: nowrap;
+        }
+      }
+
+      // 验证码行
+      .code-row {
+        margin-top: 20rpx;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .code-input {
+          width: 300rpx;
+          height: 70rpx;
+          font-size: 28rpx;
+          border-bottom: 1rpx solid #eee;
+          padding: 0 10rpx;
+        }
+
+        .verify-status {
+          width: 60rpx;
+          height: 60rpx;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          .status-loading {
+            font-size: 24rpx;
+            color: #999;
+          }
+          .status-success {
+            font-size: 36rpx;
+            color: #07c160;
+            font-weight: bold;
+          }
+          .status-error {
+            font-size: 36rpx;
+            color: #fa5151;
+            font-weight: bold;
+          }
+        }
+      }
+    }
+
+    // 只读单行条目 新样式
+    .readonly-item {
+      display: flex;
+      align-items: center;
+      padding: 28rpx 0;
+      border-bottom: 1rpx solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .readonly-label {
+        font-size: 28rpx;
+        color: #333;
+        white-space: nowrap;
+        width: 180rpx; 
+      }
+      .readonly-value {
+        flex: 1;
+        margin-left: 20rpx;
+        font-size: 28rpx;
+        color: #999;
+
+        &.plain-text {
+          padding: 12rpx 20rpx;
+          background-color: #f5f5f5;
+          border-radius: 8rpx;
+          text-align: left;
+        }
+
+        &.status-wrapper {
+          background-color: transparent; // 状态行不需要灰色背景
+          padding: 0;
+          
+          .status-value-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; // 【关键】左右分布
+            width: 100%;
+
+            .status-value {
+              padding: 10rpx 24rpx;
+              border-radius: 8rpx;
+              font-size: 26rpx;
+              font-weight: 500;
+              display: inline-block;
+
+              // 状态三色
+              &.status-normal {
+                background-color: #e6f7ee;
+                color: #07c160;
+              }
+              &.status-forbid {
+                background-color: #feeaea;
+                color: #fa5151;
+              }
+              &.status-lock {
+                background-color: #fff7e6;
+                color: #ff9500;
+              }
+            }
+
+            .appeal-btn {
+              font-size: 24rpx;
+              color: #007aff;
+              padding: 6rpx 12rpx;
+              
+              &:active {
+                opacity: 0.7;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 保存按钮
+  .save-btn-wrapper {
+    margin-top: 40rpx;
+    padding: 0 30rpx;
+
+    .save-btn {
+      background-color: #007aff;
+      color: #fff;
+      border-radius: 10rpx;
+      font-size: 32rpx;
+      line-height: 88rpx;
+    }
+  }
+
+
+
+  .avatar-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .modal-mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-content {
+      position: relative;
+      z-index: 10000;
+      width: 80%;
+      max-width: 600rpx;
+      background-color: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .preview-image {
+        width: 100%;
+        height: auto;
+        max-height: 70vh;
+        border-radius: 10rpx;
+        background-color: #fff;
+      }
+
+      .modal-actions {
+        margin-top: 30rpx;
+        display: flex;
+        justify-content: center;
+        
+        .action-btn {
+          background-color: rgba(255, 255, 255, 0.9);
+          padding: 15rpx 30rpx;
+          border-radius: 50rpx;
+          display: flex;
+          align-items: center;
+          font-size: 28rpx;
+          color: #333;
+          box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
+          
+          .btn-icon {
+            margin-right: 10rpx;
+          }
+          
+          &:active {
+            background-color: rgba(255, 255, 255, 0.7);
+          }
+        }
+      }
+    }
+  }
+}

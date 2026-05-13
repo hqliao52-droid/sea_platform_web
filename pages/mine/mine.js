@@ -24,8 +24,8 @@ export default {
       ],
       // 底部菜单列表
       menuList: [
-        // { icon: '👥', title: '企业信息管理' },
-        // { icon: '🛡', title: '安全与隐私设置' }
+        { icon: '👥', title: '企业信息管理' },
+        { icon: '🔒', title: '账号设置' }
       ]
     };
   },
@@ -34,6 +34,38 @@ export default {
     this.loadUserInfo();
   },
   methods:{
+    handleMenuClick(item) {
+      console.log('点击了菜单：', item.title);
+
+      switch (item.title) {
+        case '账号设置':
+          // 跳转到账号设置页面
+          uni.navigateTo({
+            url: '/pages/accountSetting/accountSetting',
+            fail: (err) => {
+              console.error('跳转账号设置失败', err);
+              uni.showToast({ title: '页面不存在', icon: 'none' });
+            }
+          });
+          break;
+
+        case '企业信息管理':
+          // 占位提示
+          uni.showToast({
+            title: '企业信息管理开发中...',
+            icon: 'none'
+          });
+          break;
+
+        default:
+          // 其他未知菜单项的默认处理
+          uni.showToast({
+            title: '功能暂未开放',
+            icon: 'none'
+          });
+          break;
+      }
+    },
     showPushHistroy(){
       uni.navigateTo({
         url: '/pages/pushHistory/pushHistory'

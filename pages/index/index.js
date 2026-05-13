@@ -195,7 +195,7 @@ export default {
     },
     toDetail(item) {
       uni.navigateTo({
-        url: `/pages/news_detail/news_detail?id=${item.id}`,
+        url: `/pages/news_detail/news_detail?id=${item.id}&rss_id=${item.rss_id}`,
         success: (res) => {
           console.log('跳转成功', res);
         },

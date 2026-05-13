@@ -21,7 +21,7 @@
         </view>
       </view>
       <view class="renew-bar">
-        <view class="renew-tip">续费提醒: 2024.12.31 到期</view>
+        <view class="renew-tip">续费提醒: 2026.12.31 到期</view>
         <view class="renew-btn">立即续费</view>
       </view>
     </view>
@@ -119,7 +119,13 @@
 
     <!-- 企业信息管理等设置项 -->
     <view class="menu-card">
-      <view class="menu-item" v-for="item in menuList" :key="item.title">
+      <!-- 【修改】添加点击事件 -->
+      <view 
+        class="menu-item" 
+        v-for="item in menuList" 
+        :key="item.title"
+        @click="handleMenuClick(item)"
+      >
         <view class="menu-left">
           <view class="menu-icon">{{ item.icon }}</view>
           <text>{{ item.title }}</text>
