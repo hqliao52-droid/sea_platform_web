@@ -110,14 +110,29 @@
           <image src="/static/avatar.png" mode="aspectFill"></image>
         </view>
         <view class="input-box">
-          <input type="text" placeholder="针对此文章询问 AI ..." />
+          <input 
+            type="text" 
+            v-model="inputValue"
+            placeholder="针对此文章询问 AI ..." 
+            confirm-type="send"
+            @confirm="sendQuestion" 
+          />
           <view class="send-btn">
             <image src="/static/send.png" mode="aspectFit"></image>
           </view>
         </view>
       </view>
-      <view class="hint-text">
-        <text>💡 尝试问：“这份政策对电子产品出口有什么具体影响？”</text>
+      <view class="hint-text clickable" @click="fillInputFromHint">
+        <text class="hint-prefix">↳ 尝试问：“这篇文章对 </text>
+        
+        <!-- 关键词滚动容器 -->
+        <view class="keyword-roller">
+          <text :key="dynamicHintKeyword" class="rolling-keyword animate-slide-up">
+            {{ dynamicHintKeyword }}
+          </text>
+        </view>
+        
+        <text class="hint-suffix"> 有什么具体影响？”</text>
       </view>
     </view>
   </view>

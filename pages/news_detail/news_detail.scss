@@ -427,11 +427,56 @@
   
 
   .hint-text {
-    text-align: center;
     font-size: 24rpx;
-    color: #888;
-    padding-bottom: 20rpx;
-    padding-top: 10rpx;
-    // margin-top: 10rpx;
+    color: #999;
+    margin-top: 10rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap; /* 防止换行 */
+    overflow: hidden;
+
+    &.clickable {
+      cursor: pointer;
+      transition: opacity 0.2s;
+      
+      &:active {
+        opacity: 0.7; // 点击时稍微变透明，提供反馈
+      }
+    }
+
+    .hint-prefix, .hint-suffix {
+      white-space: nowrap;
+    }
+    .keyword-roller {
+      display: inline-block;
+      height: 32rpx; /* 根据字体大小调整高度，确保能容纳一行文字 */
+      line-height: 32rpx;
+      overflow: hidden;
+      position: relative;
+      min-width: 60rpx; /* 最小宽度，防止太短导致抖动 */
+      text-align: center;
+      vertical-align: bottom; /* 与前后文字对齐 */
+    }
+    .rolling-keyword {
+      display: block;
+      color: #576b95; /* 高亮颜色，可选 */
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .animate-slide-up {
+      animation: slideUpFade 0.5s ease-in-out forwards;
+    }
+    @keyframes slideUpFade {
+      0% {
+        opacity: 0;
+        transform: translateY(100%); /* 从下方进入 */
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0); /* 到达正常位置 */
+      }
+  }
+
   }
 }

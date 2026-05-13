@@ -67,6 +67,14 @@
         "onReachBottomDistance": 50,
         "enablePullDownRefresh": false
       }
+    },
+    {
+      "path": "pages/accountSetting/accountSetting",
+      "style": {
+        "navigationBarTitleText": "账号设置",
+        "onReachBottomDistance": 50,
+        "enablePullDownRefresh": false
+      }
     }
   ],
   "globalStyle": {
