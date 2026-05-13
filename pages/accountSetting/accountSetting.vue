@@ -80,6 +80,35 @@
           </view>
         </view>
       </view>
+
+      <!-- 密码 -->
+      <view class="form-item">
+        <view class="label">密码</view>
+        
+        <!-- 未编辑状态 -->
+        <view class="input-row" v-if="!editPassword">
+          <text class="text-content">********</text>
+          <text class="edit-btn" @click="editPassword = true">修改</text>
+        </view>
+
+        <!-- 编辑状态：三个输入框 + 完成按钮 -->
+        <view class="password-edit-area" v-else>
+          <view class="pwd-input-group">
+            <input class="pwd-input" v-model="oldPassword" type="password" placeholder="请输入原密码" />
+          </view>
+          <view class="pwd-input-group">
+            <input class="pwd-input" v-model="newPassword" type="password" placeholder="请输入新密码(6-16位)" />
+          </view>
+          <view class="pwd-input-group">
+            <input class="pwd-input" v-model="confirmPassword" type="password" placeholder="请确认新密码" />
+          </view>
+          
+          <view class="pwd-actions">
+            <text class="cancel-btn" @click="editPassword = false">取消</text>
+            <button class="confirm-btn" @click="savePassword">完成修改</button>
+          </view>
+        </view>
+      </view>
     </view>
 
     <!-- 只读展示区域 —— 改成单行、灰色底纹 -->
@@ -102,6 +131,11 @@
             <text v-if="status !== 1" class="appeal-btn" @click="goAccountAppeal">账号申诉</text>
           </view>
         </view>
+      </view>
+
+      <view class="readonly-item">
+        <text class="readonly-label">角色：</text>
+        <text class="readonly-value plain-text">{{ role }}</text>
       </view>
 
       <!-- 3. 普通行：注册时间 -->

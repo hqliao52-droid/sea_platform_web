@@ -66,7 +66,6 @@ export default {
       }
       this.page = 1
       this.pageSize = 10
-      console.log('切换分类：', item)
       this.getNewsList(false)
     },
     backToTop() {
@@ -90,7 +89,6 @@ export default {
      * @param {Boolean} isLoadMore - 是否为加载更多模式（默认为 false，即首次加载）
      */
     async getNewsList(isLoadMore = false) {
-      console.log("当前分类ID",this.categoryId)
       // 1. 如果正在加载中，直接返回，防止重复请求
       if (this.isLoading) return
       

@@ -15,6 +15,51 @@
       display: flex;
       flex-direction: column;
 
+      .password-edit-area {
+        margin-top: 10rpx;
+        
+        .pwd-input-group {
+          margin-bottom: 20rpx;
+          
+          .pwd-input {
+            height: 70rpx;
+            font-size: 28rpx;
+            padding: 0 10rpx;
+            border-bottom: 1rpx solid #eee;
+            width: 100%;
+            box-sizing: border-box;
+          }
+        }
+
+        .pwd-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 20rpx;
+
+          .cancel-btn {
+            font-size: 28rpx;
+            color: #999;
+            padding: 10rpx 20rpx;
+          }
+
+          .confirm-btn {
+            background-color: #007aff;
+            color: #fff;
+            font-size: 28rpx;
+            padding: 0 40rpx;
+            height: 70rpx;
+            line-height: 70rpx;
+            border-radius: 8rpx;
+            
+            // 移除 button 默认边框
+            &::after {
+              border: none;
+            }
+          }
+        }
+      }
+
       &.avatar-item {
         align-items: center; // 确保 label 和内容整体对齐
         
