@@ -46,9 +46,9 @@
           <!-- <text class="icon-info">ⓘ</text> -->
         </view>
         <view class="tag-group">
-          <view class="tag" v-for="item in selectedCategories" :key="item.id">
-            {{ item.tag_name }}
-            <text class="tag-close" @click="removeCategory(item.id)">×</text>
+          <view class="tag" v-for="item in selectedCategories" :key="item.category_id">
+            {{ item.category_name }}
+            <text class="tag-close" @click="removeCategory(item.category_id)">×</text>
           </view>
           <view class="select-box" @click="openCategoryModal">
             <text>+ 选择类别</text>
@@ -105,15 +105,15 @@
       <view class="sub-hint">调整各维度的推荐权重，AI将按权重个性化推荐</view>
 
       <view class="slider-group">
-        <view class="slider-item" v-for="(item, index) in weightList" :key="index">
+        <view class="slider-item" v-for="(item, index) in selectedCategories" :key="index">
           <view class="slider-header">
             <view class="slider-title">
-              <image :src="item.icon" mode="aspectFit"></image>
-              <text>{{ item.name }}</text>
+              <!-- <image :src="item.icon" mode="aspectFit"></image> -->
+              <text>{{ item.category_name }}</text>
             </view>
-            <text class="slider-value">{{ item.value }}%</text>
+            <text class="slider-value">{{ item.weight }}%</text>
           </view>
-          <slider class="custom-slider" :value="item.value" @change="handleSliderChange($event, index)" :activeColor="item.color" backgroundColor="#eee" />
+          <slider class="custom-slider" :value="item.weight" @change="handleSliderChange($event, index)" :activeColor="item.color" backgroundColor="#eee" />
         </view>
       </view>
 
