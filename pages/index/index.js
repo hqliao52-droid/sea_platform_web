@@ -49,6 +49,22 @@ export default {
     // 每次页面显示时重新获取最新用户信息
     this.loadUserInfo();
   },
+  onPullDownRefresh() {
+    console.log('用户触发了下拉刷新')
+    // 1. 重置分页状态
+    this.page = 1
+    this.isFinished = false
+    this.newsList = [] // 可选：先清空列表，避免闪烁，或者等请求回来再替换
+    
+    // 2. 重新获取分类（可选，如果分类不常变可省略）
+    Promise.all([
+      this.getCategories(),
+      this.getNewsList(false),
+      this.loadUserInfo() // 如果需要刷新用户状态
+    ]).finally(() => {
+      uni.stopPullDownRefresh()
+    })
+  },
 
   methods: {
     goToLogin() {
@@ -66,6 +82,7 @@ export default {
       }
       this.page = 1
       this.pageSize = 10
+      this.isFinished = false
       this.getNewsList(false)
     },
     backToTop() {
@@ -127,7 +144,7 @@ export default {
 
           // 3. 根据模式处理数据
           if (isLoadMore) {
-            // 【关键修复】这里是 this.newsList，不是 this.newList
+            // 这里是 this.newsList，不是 this.newList
             this.newsList = [...this.newsList, ...newList]
 
             // 4. 判断是否还有更多数据
@@ -154,8 +171,12 @@ export default {
             // 如果第一页数据就不够一页，说明也没更多了
             if (newList.length < this.pageSize) {
                this.isFinished = true
+            } else {
+               this.isFinished = false // 刷新后如果有数据，重置完成状态
             }
           }
+        } else {
+          throw new Error(res.message || '请求失败')
         }
       } catch (err) {
         console.error('请求新闻失败：', err)

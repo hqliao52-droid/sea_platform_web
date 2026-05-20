@@ -80,8 +80,31 @@
           <text class="icon-info">ⓘ</text>
         </view>
         <view class="code-group">
-          <input class="input-code" placeholder="请输入验证码" v-model="verifyCode" />
-          <button class="btn-code" @click="getVerifyCode">获取验证码</button>
+          <view class="input-wrapper-with-icon">
+            <input 
+              class="input-code" 
+              placeholder="请输入6位验证码" 
+              :value="verifyCode"
+              @input="onVerifyCodeInput"
+              maxlength="6"
+            />
+            <!-- 状态图标显示区域 -->
+            <view class="verify-status-icon" v-if="verifyStatus !== null">
+              <!-- 绿色打钩 -->
+              <text v-if="verifyStatus === 'success'" class="icon-success">✓</text>
+              <!-- 红色叉号 -->
+              <text v-else class="icon-error">✕</text>
+            </view>
+          </view>
+          
+          <button 
+            class="btn-code" 
+            :class="{ 'btn-disabled': isCountingDown }" 
+            :disabled="isCountingDown"
+            @click="getVerifyCode"
+          >
+            {{ isCountingDown ? `${countdown}s后重新发送` : '获取验证码' }}
+          </button>
         </view>
         <view class="hint">验证码将发送至您的邮箱</view>
       </view>

@@ -23,6 +23,11 @@ export default {
       // 邮箱相关
       email: '',
       verifyCode: '',
+      countdown: 0,
+      isCountingDown: false,
+      timer: null,
+      verifyStatus: null,
+
 
       // AI 模型
       aiModel: '豆包-lite',
@@ -39,6 +44,7 @@ export default {
   },
   async onLoad() {
     await this.getUserConfig();
+    this.onUnload();
   },
   methods: {
     async getUserConfig() {
@@ -150,7 +156,7 @@ export default {
         this.tempSelectedCategories.push({
           category_id: cat.id,
           category_name: cat.tag_name,
-          weight: null,
+          weight: 0,
           example: cat.example // 如果后续需要用到 example 也一起存下来
         });
       }
@@ -167,19 +173,143 @@ export default {
     },
     // 权重滑块
     handleSliderChange(e, index) {
-      this.selectedCategories[index].weight = e.detail.weight
+      console.log('handleSliderChange:', index)
+      console.log('handleSliderChange:', e,)
+      this.selectedCategories[index].weight = e.detail.value
     },
     resetWeight() {
-      this.selectedCategories = []
+      if(this.selectedCategories.length === 0){
+        uni.showToast({title:"请先选择推送类别", icon: "none"})
+        return ;
+      }
+      // 1. 遍历已选类别，重新分配权重
+      this.selectedCategories.forEach((item, index) => {
+        // 计算逻辑：首项 80，公差 -8
+        // 公式：80 - (index * 8)
+        let newWeight = 80 - (index * 8);
+
+        // 2. 确保最低不低于 20%
+        if (newWeight < 20) {
+          newWeight = 20;
+        }
+
+        // 3. 更新权重值
+        item.weight = newWeight;
+      });
       uni.showToast({ title: '已重置', icon: 'success' })
     },
+    onVerifyCodeInput(e) {
+      const val = e.detail.value;
+      this.verifyCode = val;
+      
+      // 重置验证状态，因为用户正在修改
+      this.verifyStatus = null;
+
+      // 如果长度达到6位，且邮箱已填写，则自动触发验证
+      if (val.length === 6 && this.email) {
+        this.autoVerifyCode(val);
+      }
+    },
+    async autoVerifyCode(code) {
+      try {
+        // 可选：显示一个微小的加载提示，或者静默请求
+        uni.showLoading({ title: '验证中...', mask: true }); 
+        
+        const res = await request({
+          url: '/email/verify_code',
+          method: 'POST',
+          data: {
+            email: this.email,
+            code: code
+          }
+        });
+
+        // uni.hideLoading();
+
+        if (res.code === 200 || res.code === '200') {
+          this.verifyStatus = 'success';
+          // uni.showToast({ title: '验证成功', icon: 'none' }); // 可选：是否弹出提示
+        } else {
+          this.verifyStatus = 'error';
+          // uni.showToast({ title: res.msg || '验证码错误', icon: 'none' });
+        }
+      } catch (err) {
+        // uni.hideLoading();
+        console.error('自动验证失败：', err);
+        this.verifyStatus = 'error';
+      }
+    },
     // 获取验证码
-    getVerifyCode() {
+    async getVerifyCode() {
+      // 1. 基础校验
       if (!this.email) {
         uni.showToast({ title: '请先输入邮箱', icon: 'none' })
         return
       }
-      uni.showToast({ title: '验证码已发送', icon: 'success' })
+      
+      // 2. 邮箱格式简单校验
+      const emailReg = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailReg.test(this.email)) {
+        uni.showToast({ title: '请输入正确的邮箱地址', icon: 'none' });
+        return;
+      }
+
+      // 3. 如果正在倒计时，直接返回，防止重复点击
+      if (this.isCountingDown) {
+        return;
+      }
+
+      try {
+        uni.showLoading({ title: '发送中...' });
+        
+        const res = await request({
+          url: '/email/send_code',
+          method: 'POST',
+          data: {
+            email: this.email
+          }
+        });
+
+        uni.hideLoading();
+
+        if (res.code === 200 || res.code === '200') {
+          uni.showToast({ title: '验证码已发送', icon: 'success' });
+          // 4. 启动倒计时
+          this.startCountdown();
+        } else {
+          uni.showToast({ title: res.msg || '发送失败', icon: 'none' });
+        }
+      } catch (err) {
+        uni.hideLoading();
+        console.error('获取验证码失败：', err);
+        uni.showToast({ title: '网络异常', icon: 'none' });
+      }
+    },
+    startCountdown() {
+      this.isCountingDown = true;
+      this.countdown = 60;
+      
+      // 清除可能存在的旧定时器
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
+
+      this.timer = setInterval(() => {
+        if (this.countdown > 0) {
+          this.countdown--;
+        } else {
+          // 倒计时结束
+          this.isCountingDown = false;
+          clearInterval(this.timer);
+          this.timer = null;
+        }
+      }, 1000);
+    },
+    onUnload() {
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
     },
     // 查看示例
     viewExample() {
