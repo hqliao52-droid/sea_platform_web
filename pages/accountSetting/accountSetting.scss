@@ -148,12 +148,13 @@
           flex: 1;
           margin-right: 20rpx;
         }
-        .edit-btn, .code-btn {
+        
+      }
+      .edit-btn, .code-btn {
           font-size: 26rpx;
           color: #007aff;
           white-space: nowrap;
         }
-      }
 
       // 验证码行
       .code-row {

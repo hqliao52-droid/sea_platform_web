@@ -30,6 +30,17 @@
         <view class="bubble-wrapper">
           <view class="bubble" :class="{ 'user-bubble': msg.role === 'user', 'ai-bubble': msg.role === 'assistant' }">
             
+            <view 
+              v-if="msg.role === 'assistant' && isStreaming && index === messageList.length - 1 && !msg.content"
+              class="thinking-status"
+            >
+              <view class="thinking-dots">
+                <view class="dot"></view>
+                <view class="dot"></view>
+                <view class="dot"></view>
+              </view>
+              <text class="status-text">{{ statusText }}</text>
+            </view>
             <!-- 1. Assistant 消息：渲染 Markdown -->
             <u-parse
               v-if="msg.role === 'assistant'"

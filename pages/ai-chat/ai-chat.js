@@ -35,6 +35,7 @@ export default {
 
       currentSessionId: null,
       isStreaming: false,
+      statusText: '',
 
       mermaidDiagrams: {},
 
@@ -392,11 +393,19 @@ export default {
     },
 
     // 流式接收 LLM 输出
-    startWS(taskId, aiIndex) {
+    async startWS(taskId, aiIndex) {
       const that = this;
-      
+      let buffer = '';
+
+      // 状态文案映射
+      const STATUS_TEXT_MAP = {
+        'analyzing':  '正在分析问题...',
+        'reading':    '正在阅读用户提供的资料...',
+        'retrieving': '正在检索资料...',
+        'generating': '正在生成回复...',
+      };
+
       uni.connectSocket({
-        // url: `ws://192.168.110.218:8000/chatMessage/ws/chat/${taskId}`,
         url: `ws://106.52.97.98:8000/chatMessage/ws/chat/${taskId}`,
         success() {
           console.log("WS连接发起成功");
@@ -405,38 +414,76 @@ export default {
 
       uni.onSocketOpen(() => {
         console.log("WS连接成功");
+        // 初始状态文案
+        that.statusText = STATUS_TEXT_MAP['analyzing'];
       });
 
-      uni.onSocketMessage((res) => {
-        const delta = res.data;
+      uni.onSocketMessage(async (res) => {
+        buffer += res.data;
 
         if (!that.messageList[aiIndex]) return;
-
         const msg = that.messageList[aiIndex];
-        const newContent = (msg.content || "") + delta;
 
-        that.$set(msg, "content", newContent);
-        
-        // 流式过程中的渲染（可能会被截断，但整体结构会在结束后重新渲染）
-        that.$set(msg, "renderedHtml", that.renderMarkdownToHtml(newContent));
+        // 循环消费 buffer 里的特殊标记
+        let changed = true;
+        while (changed) {
+          changed = false;
 
-        that.scrollToBottom();
+          // 解析状态标记 [[STATUS:xxx]]
+          const statusMatch = buffer.match(/\[\[STATUS:(\w+)\]\]/);
+          if (statusMatch) {
+            const key = statusMatch[1];
+            if (STATUS_TEXT_MAP[key]) {
+              that.statusText = STATUS_TEXT_MAP[key];
+              that.$set(that.messageList,aiIndex,{...that.messageList[aiIndex]})
+              await new Promise(r=>setTimeout(r, 1000))
+            }
+            buffer = buffer.replace(statusMatch[0], '');
+            changed = true;
+          }
 
-        if (delta.includes("[[END]]")) {
-          console.log("WS结束");
-          uni.closeSocket();
-          that.isStreaming = false;
-          
-          // 流式结束后，重新完整渲染一次，确保代码块完整
-          setTimeout(() => {
-            that.$set(msg, "renderedHtml", that.renderMarkdownToHtml(msg.content));
-            that.$forceUpdate();
-          }, 100);
+          // 解析结束标记 [[END]]
+          if (buffer.includes('[[END]]')) {
+            buffer = buffer.replace('[[END]]', '').replace(/^\n/, '');
+            that.statusText = '';
+            uni.closeSocket();
+            that.isStreaming = false;
+
+            // 流式结束后完整重渲染（原有逻辑保留）
+            setTimeout(() => {
+              that.$set(msg, 'renderedHtml', that.renderMarkdownToHtml(msg.content));
+              that.$forceUpdate();
+            }, 100);
+
+            changed = true;
+          }
+
+          // 解析错误标记 [[ERROR]]
+          if (buffer.includes('[[ERROR]]')) {
+            buffer = buffer.replace('[[ERROR]]', '');
+            that.statusText = '';
+            that.isStreaming = false;
+            that.$set(msg, 'content', msg.content || '抱歉，出现了一些问题，请稍后重试。');
+            uni.closeSocket();
+            changed = true;
+          }
+        }
+
+        // buffer 里剩下的是普通文本，且不包含未完整的标记时才输出
+        // 用 [[ 判断是否有待拼完的标记片段，避免把半截标记输出
+        if (buffer && !buffer.includes('[[')) {
+          const newContent = (msg.content || '') + buffer;
+          buffer = '';
+          that.$set(msg, 'content', newContent);
+          that.$set(msg, 'renderedHtml', that.renderMarkdownToHtml(newContent));
+          that.scrollToBottom();
         }
       });
 
       uni.onSocketError((err) => {
         console.error("WS错误", err);
+        that.statusText = '';
+        that.isStreaming = false;
       });
 
       uni.onSocketClose(() => {

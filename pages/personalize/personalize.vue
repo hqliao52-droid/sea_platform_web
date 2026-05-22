@@ -18,6 +18,7 @@
       <view class="card-title">
         <image src="/static/icons/rule-icon.png" mode="aspectFit"></image>
         <text>推送规则设置</text>
+        <text style="font-size: 18rpx; color: #ccc;margin-left: 10rpx;">上次修改时间：{{ updated_at }}</text>
       </view>
 
       <!-- 每日消息最大推送量 -->
@@ -71,11 +72,25 @@
         <view class="label">对应的通知方式输入
           <text class="icon-info">ⓘ</text>
         </view>
-        <input class="input-field" placeholder="请输入邮箱地址" v-model="email" />
+        <view class="email-input-row">
+          <input 
+            class="input-field-inline" 
+            :disabled="!isChanged" 
+            placeholder="请输入邮箱地址" 
+            v-model="email" 
+          />
+          <!-- 只有当邮箱已存在且未处于修改状态时，才显示“点击修改” -->
+          <view v-if="!isChanged" class="edit-hint" @click="enableEdit">
+            点击修改
+          </view>
+          <view v-else class="edit-hint" @click="disableEdit">
+            取消
+          </view>
+        </view>
       </view>
 
       <!-- 验证邮箱 -->
-      <view class="form-item" v-if="notifyMethod === '邮箱'">
+      <view class="form-item" v-if="notifyMethod === '邮箱' && isChanged">
         <view class="label">验证邮箱
           <text class="icon-info">ⓘ</text>
         </view>
@@ -86,8 +101,17 @@
               placeholder="请输入6位验证码" 
               :value="verifyCode"
               @input="onVerifyCodeInput"
+              @focus="onCodeFocus"
+              @blur="onCodeBlur"
               maxlength="6"
             />
+            <view 
+              v-if="verifyCode && clearVerifyStatus" 
+              class="clear-icon" 
+              @click="clearVerifyCode"
+            >
+              ×
+            </view>
             <!-- 状态图标显示区域 -->
             <view class="verify-status-icon" v-if="verifyStatus !== null">
               <!-- 绿色打钩 -->
