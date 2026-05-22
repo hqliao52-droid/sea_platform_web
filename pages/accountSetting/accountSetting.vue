@@ -49,7 +49,7 @@
 
         <!-- 验证码输入框（修改手机号时显示） -->
         <view class="code-row" v-if="editPhone">
-          <input class="code-input" v-model="phoneCode" placeholder="请输入4位验证码" maxlength="4" @input="handlePhoneCodeInput" />
+          <input class="code-input" v-model="phoneCode" placeholder="请输入6位验证码" maxlength="4" @input="handlePhoneCodeInput" />
           <view class="verify-status">
             <text v-if="phoneCodeStatus === 'loading'" class="status-loading">验证中...</text>
             <text v-else-if="phoneCodeStatus === 'success'" class="status-success">✓</text>
@@ -67,12 +67,13 @@
         </view>
         <view class="input-row" v-else>
           <input class="input" v-model="email" placeholder="请输入新邮箱" />
-          <text class="code-btn" @click="sendEmailCode">发送验证码</text>
+
         </view>
 
         <!-- 验证码输入框（修改邮箱时显示） -->
         <view class="code-row" v-if="editEmail">
           <input class="code-input" v-model="emailCode" placeholder="请输入4位验证码" maxlength="4" @input="handleEmailCodeInput" />
+          <text class="code-btn" @click="sendEmailCode">发送验证码</text>
           <view class="verify-status">
             <text v-if="emailCodeStatus === 'loading'" class="status-loading">验证中...</text>
             <text v-else-if="emailCodeStatus === 'success'" class="status-success">✓</text>

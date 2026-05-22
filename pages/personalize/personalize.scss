@@ -244,10 +244,41 @@
           color: #4080ff;
         }
       }
+      .email-input-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
 
-      .input-field,
+        .input-field-inline {
+          flex: 1; // 占据剩余空间
+          height: 60rpx;
+          border: 2rpx solid #eee;
+          border-radius: 8rpx;
+          padding: 0 16rpx;
+          font-size: 26rpx;
+          background-color: #fff;
+          
+          // 禁用时的样式
+          &[disabled] {
+            background-color: #f9f9f9;
+            color: #999;
+          }
+        }
+
+        .edit-hint {
+          margin-left: 20rpx;
+          font-size: 24rpx;
+          color: #4080ff;
+          white-space: nowrap; // 防止换行
+          
+          &:active {
+            opacity: 0.7;
+          }
+        }
+      }
+
       .input-code {
-        width: 95%;
+        width: 75%;
         height: 60rpx;
         border: 2rpx solid #eee;
         border-radius: 8rpx;
@@ -272,11 +303,24 @@
             border-radius: 8rpx;
             padding: 0 20rpx;
             font-size: 28rpx;
-            // 确保右侧有空间显示图标
             padding-right: 60rpx; 
             box-sizing: border-box;
           }
 
+          .clear-icon {
+            position: absolute;
+            right: 60rpx; // 放在状态图标的左边
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 32rpx;
+            color: #ccc;
+            padding: 10rpx; // 增加点击区域
+            z-index: 2;
+            
+            &:active {
+              color: #999;
+            }
+          }
           .verify-status-icon {
             position: absolute;
             right: 20rpx;

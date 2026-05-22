@@ -1,5 +1,6 @@
 import { getUserInfo } from '@/utils/user.js';
 import { request } from '@/utils/request.js'
+import { sendVerifyCode, verifyCode } from '@/utils/email.js'
 
 export default {
   data() {
@@ -346,7 +347,8 @@ export default {
       try {
         // TODO 后端请求
         console.log('验证邮箱验证码:', this.emailCode);
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await sendVerifyCode(this.email);
+        uni.showToast({ title: '验证码已发送', icon: 'success' });
         this.emailCodeStatus = 'success';
       } catch (err) {
         this.emailCodeStatus = 'error';
