@@ -65,12 +65,12 @@ export default {
       if (!this.content) return '';
       
       // 如果已经展开，或者长度小于等于50，显示全部
-      if (this.isContentExpanded || this.content.length <= 50) {
+      if (this.isContentExpanded || this.content.length <= 256) {
         return this.content;
       }
       
       // 否则显示前50个字 + ...
-      return this.content.substring(0, 120) + '...';
+      return this.content.substring(0, 256) + '...';
     }
   },
   methods: {
