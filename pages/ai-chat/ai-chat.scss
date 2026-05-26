@@ -103,6 +103,7 @@
       // --- AI 消息 (左侧) ---
       &.ai-msg {
         justify-content: flex-start;
+        width: 120%;
 
         .avatar {
           order: 1; // 头像在第1位
@@ -836,6 +837,7 @@
     }
 
     .input-box {
+      position: relative;
       display: flex;
       align-items: flex-end;
       background-color: #f5f7fa;
@@ -844,33 +846,53 @@
       min-height: 50rpx;
       position: relative;
 
-      .input-textarea {
-        flex: 1;
-        font-size: 28rpx;
-        line-height: 40rpx;
-        /* 与 JS 中的 lineHeight 对应 */
-        padding: 10rpx 0;
-        min-height: 40rpx;
-        max-height: 160rpx;
-        /* 4行 * 40rpx = 160rpx */
-
-        /* 允许内部滚动 */
-        overflow-y: auto;
-
-        /* 隐藏原生边框 */
-        border: none;
-        background: transparent;
-
-        /* 针对微信小程序/APP端的滚动条美化（可选） */
-        &::-webkit-scrollbar {
-          width: 4rpx;
-        }
-
-        &::-webkit-scrollbar-thumb {
-          background-color: #ccc;
-          border-radius: 4rpx;
+      /* 1. 左侧 + 号 */
+      .plus-trigger {
+        width: 60rpx;
+        height: 60rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10rpx;
+        flex-shrink: 0;
+        
+        image {
+          width: 40rpx;
+          height: 40rpx;
         }
       }
+
+      .input-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        min-height: 60rpx;
+      
+        .input-textarea {
+          width:100%;
+          font-size: 28rpx;
+          line-height: 40rpx;
+          line-height: 1.5;
+
+          /* 允许内部滚动 */
+          overflow-y: auto;
+
+          /* 隐藏原生边框 */
+          border: none;
+          background: transparent;
+
+          /* 针对微信小程序/APP端的滚动条美化（可选） */
+          &::-webkit-scrollbar {
+            width: 4rpx;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 4rpx;
+          }
+        }
+      }
+      
 
       ::v-deep .textarea-placeholder {
         color: #999;
@@ -906,6 +928,130 @@
             opacity: 0.6;
           }
         }
+      }
+
+      .plus-menu-popover {
+        position: absolute;
+        bottom: 100%; /* 在输入框上方显示 */
+        left: 0;
+        width: 100%; /* 或者固定宽度，如 600rpx */
+        background-color: #ffffff;
+        border-radius: 16rpx;
+        box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+        padding: 20rpx;
+        margin-bottom: 20rpx;
+        z-index: 100;
+        display: flex;
+        gap: 20rpx;
+        animation: slideUp 0.2s ease-out;
+      
+        .menu-left {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 20rpx;
+
+          .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 20rpx;
+            background-color: #f8f8f8;
+            border-radius: 12rpx;
+
+            .menu-icon {
+              width: 40rpx;
+              height: 40rpx;
+              margin-right: 15rpx;
+            }
+            .menu-text {
+              font-size: 28rpx;
+              color: #333;
+              flex: 1;
+            }
+
+            .arrow-icon {
+              width: 24rpx;
+              height: 24rpx;
+              opacity: 0.5;
+            }
+          }
+        }
+
+        .menu-right {
+          flex: 1.5; /* 稍微宽一点 */
+          background-color: #fafafa;
+          border-radius: 12rpx;
+          padding: 10rpx;
+          display: flex;
+          flex-direction: column;
+          max-height: 400rpx; /* 限制高度 */
+
+          .recent-file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10rpx 15rpx;
+            border-bottom: 1rpx solid #eee;
+          }
+          .rf-title {
+            font-size: 26rpx;
+            font-weight: bold;
+            color: #666;
+          }
+
+          .rf-close {
+            font-size: 32rpx;
+            color: #999;
+            padding: 0 10rpx;
+          }
+        }
+
+        .recent-file-list {
+          flex: 1;
+          overflow-y: auto;
+
+          .rf-item {
+            display: flex;
+            align-items: center;
+            padding: 15rpx 10rpx;
+          
+            &:active {
+              background-color: #eee;
+            }
+
+            .rf-icon {
+              width: 32rpx;
+              height: 32rpx;
+              margin-right: 10rpx;
+            }
+
+            .rf-name {
+              font-size: 26rpx;
+              color: #333;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+          }
+
+          .rf-empty {
+            text-align: center;
+            font-size: 24rpx;
+            color: #999;
+            padding: 40rpx 0;
+          }
+        }
+      }
+
+    }
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20rpx);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
 

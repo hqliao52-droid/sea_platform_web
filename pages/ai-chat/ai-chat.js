@@ -4,6 +4,8 @@ import { getReadHistory } from '@/utils/history.js';
 import { streamRequest } from '@/utils/stream-request.js';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-light.css'; 
+import { onLoad } from 'uview-ui/libs/mixin/mixin';
+import { uploadSingleSpeciallyFile } from "@/utils/uploadFile.js"
 
 export default {
   data() {
@@ -15,11 +17,7 @@ export default {
       nikeName: '',
       avatar: '',
       // 常用查询标签
-      quickTags: [
-        '越南清关流程',
-        '最新关税政策',
-        '竞品动态分析'
-      ],
+      quickTags: [],
 
       // 侧边栏
       showSidebar: false,
@@ -66,6 +64,11 @@ export default {
 
       selectedNewsIds: [],
 
+      showPlusMenu: false,
+      recentFiles: [],
+      showRecentFilesList: false,
+      attachedFiles:[],
+
     };
   },
   onShow(){
@@ -75,8 +78,133 @@ export default {
       this.initDefaultSession();
     });
   },
+  onLoad() { 
+    this.loadRecentFiles();
+  },
 
   methods: {
+    togglePlusMenu() {
+      this.showPlusMenu = !this.showPlusMenu;
+      // 如果关闭菜单，同时也关闭右侧文件列表
+      if (!this.showPlusMenu) {
+        this.showRecentFilesList = false;
+      }
+    },
+    closePlusMenu() {
+      this.showPlusMenu = false;
+      this.showRecentFilesList = false;
+    },
+    toggleRecentFiles() {
+      this.showRecentFilesList = !this.showRecentFilesList;
+    },
+    async handleUploadAttachment() {
+      let isLoadingShown = false; // 标记 Loading 是否已显示
+      try {
+        let filePath = '';
+        let fileName = '';
+
+        // #ifdef H5
+        // H5 端使用 chooseFile
+        const h5Res = await new Promise((resolve, reject) => {
+          uni.chooseFile({
+            count: 1,
+            extension: ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf', '.txt', '.jpg', '.png'],
+            success: resolve,
+            fail: reject
+          });
+        });
+        if (h5Res && h5Res.tempFiles && h5Res.tempFiles.length > 0) {
+          filePath = h5Res.tempFiles[0].path;
+          fileName = h5Res.tempFiles[0].name;
+        } else {
+          return;
+        }
+        // #endif
+
+        // #ifdef MP-WEIXIN
+        // 微信小程序使用 chooseMessageFile
+        const wxRes = await new Promise((resolve, reject) => {
+          uni.chooseMessageFile({
+            count: 1,
+            type: 'all',
+            success: resolve,
+            fail: reject
+          });
+        });
+        if (wxRes && wxRes.tempFiles && wxRes.tempFiles.length > 0) {
+          filePath = wxRes.tempFiles[0].path;
+          fileName = wxRes.tempFiles[0].name;
+        } else {
+          return;
+        }
+        // #endif
+
+        // #ifdef APP-PLUS
+        // App 端简单处理，提示或使用 chooseImage (视具体需求而定，这里暂时提示)
+        // uni.showToast({ title: 'App端暂不支持此功能', icon: 'none' });
+        // return;
+        // #endif
+
+        if (!filePath) {
+          return;
+        }
+
+        // 只有在成功获取到文件路径后，才显示 Loading
+        uni.showLoading({ title: '上传中...' });
+        isLoadingShown = true;
+
+        // 调用单文件上传工具
+        const uploadResult = await uploadSingleSpeciallyFile(filePath, fileName);
+
+        console.log('上传成功:', uploadResult);
+
+        uni.showToast({
+          title: '上传成功',
+          icon: 'success'
+        });
+
+        // TODO: 处理上传结果，例如保存到 this.attachedFiles
+        if (this.attachedFiles) {
+          this.attachedFiles.push(uploadResult);
+          this.recentFiles.push(uploadResult);
+        }
+
+      } catch (err) {
+        console.error('上传过程异常:', err);
+        
+        // 1. 处理用户取消选择的情况
+        if (err.errMsg && (err.errMsg.includes('cancel') || err.errMsg.includes('fail cancel'))) {
+          console.log('用户取消了文件选择');
+          return; // 直接返回，不执行后续的 hideLoading 和 toast
+        }
+
+        // 2. 处理其他真实错误
+        uni.showToast({
+          title: '上传失败',
+          icon: 'none'
+        });
+      } finally {
+        // 3. 只有当 Loading 真正显示过时，才执行 hideLoading
+        if (isLoadingShown) {
+          uni.hideLoading();
+        }
+        this.closePlusMenu();
+      }
+    },
+    loadRecentFiles() {
+      // TODO: 从本地缓存或服务器获取最近使用的5个文件
+      // this.recentFiles = [...];
+    },
+    selectRecentFile(file) {
+      console.log('选中近期文件:', file);
+      // TODO: 将文件添加到待发送列表或直接作为上下文
+      uni.showToast({
+        title: `已选择: ${file.filename}`,
+        icon: 'none'
+      });
+      this.closePlusMenu();
+    },
+
     toggleNewsSelection(item) {
       const id = item.id;
       const index = this.selectedNewsIds.indexOf(id);
@@ -167,7 +295,11 @@ export default {
       this.isHistoryExpanded = !this.isHistoryExpanded;
     },
     loadRecentHistory() {
-      this.recentHistory = getReadHistory();
+      if (this.userInfo && this.userInfo.id) {
+        this.recentHistory = getReadHistory(this.userInfo.id);
+      } else {
+        this.recentHistory = [];
+  }
     },
 
     // 简易 Markdown -> HTML（只覆盖你当前需求：加粗、换行、编号列表/列表项）

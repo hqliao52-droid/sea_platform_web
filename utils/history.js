@@ -8,14 +8,32 @@ const HISTORY_KEY = 'recent_read_history';
 const MAX_HISTORY_COUNT = 4;
 
 /**
+ * 获取当前用户的存储 Key
+ * @param {String|Number} userId - 用户ID
+ */
+function getHistoryKey(userId) {
+  if (!userId) {
+    console.warn('获取阅读历史时缺少 userId，可能导致数据混淆');
+    // 为了兼容旧数据或未登录情况，可以返回默认 Key，但建议强制要求 userId
+    return HISTORY_PREFIX; 
+  }
+  return `${HISTORY_PREFIX}_${userId}`;
+}
+
+/**
  * 添加阅读记录
  * @param {Object} article - 文章对象 (至少包含 id, title, cover等关键信息)
  */
 export function addReadHistory(article) {
   if (!article || !article.id) return;
+  if (!userId) {
+    console.error('添加阅读历史失败：缺少 userId');
+    return;
+  }
+  const key = getHistoryKey(userId);
 
   // 1. 获取现有历史
-  let history = uni.getStorageSync(HISTORY_KEY) || [];
+  let history = uni.getStorageSync(key) || [];
 
   // 2. 去重：如果该文章已存在，先移除旧记录（为了把它移到最前面）
   history = history.filter(item => item.id !== article.id);
@@ -33,7 +51,7 @@ export function addReadHistory(article) {
   // 4. 添加到数组头部（最新阅读的在最前）
   history.unshift(simpleArticle);
 
-  // 5. 截取前3个
+  // 5. 截取前N个
   if (history.length > MAX_HISTORY_COUNT) {
     history = history.slice(0, MAX_HISTORY_COUNT);
   }
@@ -51,13 +69,32 @@ export function addReadHistory(article) {
  * 获取阅读历史
  * @returns {Array}
  */
-export function getReadHistory() {
-  return uni.getStorageSync(HISTORY_KEY) || [];
+export function getReadHistory(userId) {
+  if (!userId) {
+    return [];
+  }
+  const key = getHistoryKey(userId);
+  let history = uni.getStorageSync(newKey);
+
+  if (!history || history.length === 0) {
+    const oldKey = HISTORY_PREFIX; // 'recent_read_history'
+    const oldData = uni.getStorageSync(oldKey);
+    if (oldData && oldData.length > 0) {
+      // 将旧数据写入新 Key
+      uni.setStorageSync(newKey, oldData);
+      // 可选：清除旧 Key，避免后续混淆
+      uni.removeStorageSync(oldKey);
+      return oldData;
+    }
+  }
+  return history || [];
 }
 
 /**
  * 清空阅读历史
  */
-export function clearReadHistory() {
-  uni.removeStorageSync(HISTORY_KEY);
+export function clearReadHistory(userId) {
+  if (!userId) return;
+  const key = getHistoryKey(userId);
+  uni.removeStorageSync(key);
 }
