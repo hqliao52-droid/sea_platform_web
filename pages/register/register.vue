@@ -24,7 +24,7 @@
       <!-- 注册表单 -->
       <view class="form-box">
         <view class="input-item">
-          <input v-model="form.account" placeholder="请输入账号/手机号" type="text" />
+          <input v-model="form.account" placeholder="请输入注册账号" type="text" />
         </view>
 
         <view class="input-item">
@@ -40,10 +40,46 @@
         </view>
 
         <view class="input-item">
-          <input v-model="form.phone" placeholder="电话" />
+          <input 
+            v-model="form.email"
+            placeholder="请输入邮箱地址..." 
+            type="text"
+            @input="onEmailInput"
+            :class="{ 'verified-input': isEmailVerified }"
+          />
+          <view v-if="isEmailVerified" class="email-success-icon">
+            <text class="check-mark">✓</text>
+          </view>
+        </view>
+        <view class="input-item verify-group" v-if="!isEmailVerified">
+          <input 
+            v-model="form.verifyCode"
+            placeholder="请输入6位验证码" 
+            type="number"
+            maxlength="6"
+            @input="onCodeInput"
+            :disabled="isEmailVerified"
+            :class="{ 'verified-input': isEmailVerified }"
+          />
+          <button 
+            class="send-code-btn" 
+            @click="handleSendCode" 
+            :disabled="countdown > 0"
+            :class="{ 'btn-verified': isEmailVerified }"
+          >
+            {{ getButtonText() }}
+          </button>
+          <!-- 验证成功绿色对钩 -->
+          <!-- <view v-if="isEmailVerified" class="success-icon">
+            <text class="check-mark">✓</text>
+          </view> -->
         </view>
 
-        <button class="register-btn" @click="handleRegister" :disabled="loading">
+        <button 
+          class="register-btn" 
+          @click="handleRegister" 
+          :class="{ 'btn-disabled': !isEmailVerified }"
+        >
           <text v-if="!loading">注册</text>
           <text v-else>注册中...</text>
         </button>

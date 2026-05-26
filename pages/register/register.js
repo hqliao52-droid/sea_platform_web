@@ -1,5 +1,5 @@
 import { request } from '@/utils/request.js';
-import icon from 'uview-ui/libs/config/props/icon';
+import { registerSendVerifyCode, registerVerifyCode } from '@/utils/email.js';
 
 export default {
   data() {
@@ -9,14 +9,78 @@ export default {
         password: '',
         confirmPwd: '',
         nickName: '',
-        phone: '',
-
+        email: '',
+        verifyCode: ''
       },
       avatarUrl: '',
+
       loading: false,
+
+      countdown: 0,
+      timer: null,
+      isEmailVerified: false,
     }
   },
   methods: {
+    onEmailInput() {
+      if (this.isEmailVerified) {
+        this.isEmailVerified = false;
+        this.form.verifyCode = '';
+        this.countdown = 0;
+        if (this.timer) {
+          clearInterval(this.timer);
+          this.timer = null;
+        }
+      }
+    },
+    getButtonText() {
+      if (this.isEmailVerified) {
+        return '已验证';
+      }
+      if (this.countdown > 0) {
+        return `${this.countdown}s`;
+      }
+      return '获取验证码';
+    },
+    getCountdownText() {
+      if (this.isEmailVerified) {
+        return '已验证';
+      }
+      if (this.countdown > 0) {
+        return `${this.countdown}s`;
+      }
+      return '获取验证码';
+    },
+    onVerifyPhone(e){
+      const val = e.detail.value;
+      this.verifyPhone = val;
+
+      if (val.length === 11 && this.form.phone){
+        this.autoVerifyPhone(val);
+      }
+    },
+    async autoVerifyPhone(){
+      try {
+        await this.verify(this.verifyPhone);
+        this.verifyStatus = "success";
+      } catch (error) {
+        this.verifyStatus = "fail";
+      }
+    },
+    async verify(phone,username){
+      try{
+        const res = await request({
+          url: '/user/verify',
+          method: 'POST',
+          data: {
+            phone: phone || null,
+            username: username || null
+          }
+        });
+      }catch(err){
+        throw err;
+      }
+    },
     // 选择头像
     chooseAvatar() {
       uni.chooseImage({
@@ -65,25 +129,95 @@ export default {
       this.avatarUrl = ''
       uni.showToast({ title: '已删除头像', icon: 'success' })
     },
+    async handleSendCode() {
+      const email = this.form.email.trim();
+      const emailReg = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      
+      if (!email) {
+        uni.showToast({ title: '请输入邮箱', icon: 'none' });
+        return;
+      }
+      if (!emailReg.test(email)) {
+        uni.showToast({ title: '邮箱格式不正确', icon: 'none' });
+        return;
+      }
+
+      try {
+        await registerSendVerifyCode(email);
+        uni.showToast({ title: '验证码已发送', icon: 'success' });
+        this.startCountdown();
+      } catch (err) {
+        console.error(err);
+      }
+    },
+    startCountdown() {
+      this.countdown = 60;
+      if (this.timer) clearInterval(this.timer);
+      
+      this.timer = setInterval(() => {
+        if (this.countdown > 0) {
+          this.countdown--;
+        } else {
+          clearInterval(this.timer);
+          this.timer = null;
+        }
+      }, 1000);
+    },
+    async onCodeInput(e) {
+      const code = e.detail.value;
+      this.form.verifyCode = code;
+
+      // 只有未验证状态下，且输入满6位才自动验证
+      if (code.length === 6 && !this.isEmailVerified) {
+        await this.handleVerifyCode(code);
+      }
+    },
+    async handleVerifyCode(code) {
+      const email = this.form.email.trim();
+      if (!email) return;
+
+      try {
+        await registerVerifyCode(email, code);
+        this.isEmailVerified = true;
+        uni.showToast({ title: '验证成功，您可再次单击输入框重新编辑邮箱！', icon: 'success' });
+        
+        // 验证成功后停止倒计时
+        if (this.timer) {
+          clearInterval(this.timer);
+          this.timer = null;
+        }
+      } catch (err) {
+        this.isEmailVerified = false;
+        uni.vibrateShort();
+      }
+    },
 
     // 注册
     async handleRegister() {
-      const { account, password, confirmPwd } = this.form
-      if (!account) {
-        uni.showToast({ title: '请输入账号', icon: 'none' })
-        return
+      if (!this.form.account) {
+        uni.showToast({ title: '请输入注册账号', icon: 'none' });
+        return;
       }
-      if (!password || password.length < 6) {
-        uni.showToast({ title: '密码至少6位', icon: 'none' })
-        return
+      if (!this.form.password) {
+        uni.showToast({ title: '请设置密码', icon: 'none' });
+        return;
       }
-      if (password !== confirmPwd) {
-        uni.showToast({ title: '两次密码不一致', icon: 'none' })
-        return
+      if (!this.form.confirmPwd) {
+        uni.showToast({ title: '请确认密码', icon: 'none' });
+        return;
       }
-
-      // 防止重复提交
-      if (this.loading) return;
+      if (this.form.password !== this.form.confirmPwd) {
+        uni.showToast({ title: '两次密码不一致', icon: 'none' });
+        return;
+      }
+      if (!this.form.nickName) {
+        uni.showToast({ title: '请输入昵称', icon: 'none' });
+        return;
+      }
+      if (!this.isEmailVerified) {
+        uni.showToast({ title: '请先完成邮箱验证', icon: 'none' });
+        return;
+      }
       this.loading = true;
 
       try {
@@ -91,13 +225,14 @@ export default {
           url: '/user/register',
           method: 'POST',
           data: {
-            username: account,
-            password: password,
+            username: this.form.account,
+            password: this.form.password,
             avatar: this.avatarUrl || '',
             nickname: this.form.nickName || '',
-            phone: this.form.phone || ''
+            email: this.form.email
           }
-        })
+        });
+
 
         // 假设 request 拦截器已经处理了非200的情况抛出异常，或者返回统一结构
         // 这里根据你原有的代码逻辑判断
@@ -109,9 +244,10 @@ export default {
 
         // 注册成功
         uni.showToast({
-          title: '注册成功',
-          icon: 'success',
-          duration: 1500
+          title: '注册成功！请牢记注册账号，后续登录均需要使用该账号登录',
+          icon: 'none', // 使用 none 可以显示更长的文本且通常不阻塞底层交互
+          duration: 2000, // 停留3秒
+          mask: false // 确保不显示遮罩，允许用户点击其他区域（虽然此时通常会跳转）
         });
 
         // 延迟跳转，确保 Toast 显示
@@ -129,7 +265,7 @@ export default {
           //   url: '/pages/login/login'
           // });
 
-        }, 500);
+        }, 2000);
 
       } catch (err) {
         console.error('Register Error:', err);

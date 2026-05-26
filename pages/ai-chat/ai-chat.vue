@@ -15,9 +15,8 @@
     </view>
 
     <!-- 聊天列表区域 -->
-         <!-- 聊天列表区域 -->
     <scroll-view class="chat-content" scroll-y :scroll-top="scrollTop" scroll-with-animation>
-      <view class="time-divider">今天</view>
+      <!-- <view class="time-divider">今天</view> -->
 
       <view v-for="(msg, index) in messageList" :key="index" class="message-item" :class="{ 'user-msg': msg.role === 'user', 'ai-msg': msg.role === 'assistant' }">
         
@@ -154,13 +153,6 @@
         </view>
       </view>
       
-      <view class="quick-query">
-        <view class="query-title">常用查询</view>
-        <view class="query-tags">
-          <view v-for="tag in quickTags" :key="tag" class="tag" @click="inputText = tag">{{ tag }}</view>
-        </view>
-      </view>
-
       <view v-if="lastDeletedText" class="deleted-backup-bar" @click="restoreDeletedText">
         <text class="backup-icon">↺</text>
         <text class="backup-text">点击恢复</text>
@@ -170,19 +162,40 @@
         </view>
       </view>
       
+      <view class="quick-query">
+        <!-- <view class="query-title">上传</view> -->
+        <view class="upload_files">
+          <img src="/static/attach.png" alt="" style="width: 40rpx;height: 40rpx;">
+        </view>
+        <view class="query-tags">
+          <view 
+            v-for="tag in attachedFiles" 
+            :key="tag.url" 
+            class="tag" 
+            @click="inputText = tag.filename">{{ tag.filename }}</view>
+        </view>
+      </view>
       <view class="input-box">
-        <textarea 
-          v-model="inputText" 
-          :placeholder="selectedNewsIds.length > 0 ? '基于选中的文章进行提问...' : '请输入...'" 
-          placeholder-class="textarea-placeholder"
-          class="input-textarea" 
-          :auto-height="true" 
-          :show-confirm-bar="false"
-          confirm-type="send"
-          @confirm="sendMessage"
-          @input="onInput"
-        ></textarea>
-         <view class="input-actions">
+
+        <view class="plus-trigger" @click.stop="togglePlusMenu">
+          <image src="/static/plus.png" mode="aspectFit"></image> 
+          <!-- 如果没有 plus-icon.png，可以用文字 + 或者 uview 图标代替 -->
+        </view>
+        <view class="input-wrapper">
+          <textarea 
+            v-model="inputText" 
+            :placeholder="selectedNewsIds.length > 0 ? '基于选中的文章进行提问...' : '请输入...'" 
+            placeholder-class="textarea-placeholder"
+            class="input-textarea" 
+            :auto-height="true" 
+            :show-confirm-bar="false"
+            confirm-type="send"
+            @confirm="sendMessage"
+            @input="onInput"
+          ></textarea>
+        </view>
+
+        <view class="input-actions">
           <!-- 删除按钮：仅当有内容且未处于发送状态时显示 -->
           <view v-if="inputText && !isStreaming" class="action-icon-btn" @click.stop="clearInputWithBackup">
             <image src="/static/delete.png" mode="aspectFit"></image> 
@@ -191,6 +204,39 @@
           
           <view class="send-btn" @click="sendMessage">
             <image src="/static/send.png" mode="aspectFit"></image>
+          </view>
+        </view>
+        
+        <view v-if="showPlusMenu" class="plus-menu-popover">
+          <!-- 左侧：操作入口 -->
+          <view class="menu-left">
+            <view class="menu-item" @click="handleUploadAttachment">
+              <image src="/static/attach.png" mode="aspectFit" class="menu-icon"></image>
+              <text class="menu-text">上传附件</text>
+            </view>
+            <view class="menu-item" @click="toggleRecentFiles">
+              <image src="/static/recent.png" mode="aspectFit" class="menu-icon"></image>
+              <text class="menu-text">近期文件</text>
+              <!-- <image src="/static/recent.png" mode="aspectFit" class="arrow-icon"></image> -->
+            </view>
+          </view>
+
+          <!-- 右侧：近期文件列表 (仅当点击“近期文件”时显示，或者一直显示看需求，这里按需求描述为二级或并列) -->
+          <!-- 根据描述 "用户点击+号后变为... 近期文件 -> | 文件列表"，这里做成点击“近期文件”展开右侧，或者直接展示 -->
+          <!-- 为了体验更好，建议点击“近期文件”后，右侧滑出或显示列表。这里简化为：如果 recentFiles 有数据，直接显示在右侧区域，或者点击后显示 -->
+          
+          <view v-if="showRecentFilesList" class="menu-right">
+            <view class="recent-file-header">
+              <text class="rf-title">近期文件</text>
+              <text class="rf-close" @click.stop="showRecentFilesList = false">×</text>
+            </view>
+            <scroll-view scroll-y class="recent-file-list">
+              <view v-for="(file, index) in recentFiles" :key="index" class="rf-item" @click="selectRecentFile(file)">
+                <image src="/static/file-doc.png" mode="aspectFit" class="rf-icon"></image>
+                <text class="rf-name">{{ file.filename }}</text>
+              </view>
+              <view v-if="recentFiles.length === 0" class="rf-empty">暂无近期文件</view>
+            </scroll-view>
           </view>
         </view>
       </view>
