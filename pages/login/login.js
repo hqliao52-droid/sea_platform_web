@@ -1,4 +1,4 @@
-import { request } from '@/utils/request.js' 
+import { request } from '@/utils/request.js'
 
 export default {
   data() {
@@ -7,13 +7,22 @@ export default {
         account: '',
         password: ''
       },
-      loading: false
+      loading: false,
+      retry: 3,
+      showPassword: false
     }
   },
   methods: {
+    togglePasswordVisibility() {
+      this.showPassword = !this.showPassword;
+    },
     // 登录
     handleLogin() {
-      const { account, password } = this.form
+      const { account, password } = this.form;
+      if (this.retry <= 0) {
+        uni.showToast({ title: '登录失败次数过多，请稍后再试', icon: 'none' });
+        return;
+      }
       if (!account) {
         uni.showToast({ title: '请输入账号', icon: 'none' })
         return
@@ -35,23 +44,24 @@ export default {
       }).then(res => {
         if (res.code === '200' || res.code === 200) {
           const token = res.data.token
-          
+
           // token存入缓存
           uni.setStorageSync('token', token)
-          uni.setStorageSync('userInfo',JSON.stringify(res.data.userInfo))
-          
+          uni.setStorageSync('userInfo', JSON.stringify(res.data.userInfo))
+
           // 3. 可选：如果有 Vuex/Pinia，同时更新全局状态
           // this.$store.commit('SET_USER_INFO', userInfo);
-          
+
           uni.showToast({ title: '登录成功', icon: 'success' })
-          
+
           setTimeout(() => {
             uni.switchTab({
               url: '/pages/index/index'
             })
           }, 1000)
         } else {
-          uni.showToast({ title: res.msg || '登录失败', icon: 'none' })
+          uni.showToast({ title: res.msg || '登录失败', icon: 'none' });
+          this.retry--;
         }
       }).catch(err => {
         console.error('Login Error:', err)

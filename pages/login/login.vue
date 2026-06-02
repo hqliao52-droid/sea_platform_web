@@ -12,8 +12,22 @@
         <input v-model="form.account" placeholder="请输入账号/手机号" type="text" />
       </view>
 
-      <view class="input-item">
-        <input v-model="form.password" placeholder="请输入密码" password />
+      <view class="input-item password-row">
+        <input 
+          v-model="form.password" 
+          placeholder="请输入密码" 
+          :password="!showPassword" 
+          :key="showPassword" 
+          class="password-input"
+        />
+        <view class="eye-icon" @click="togglePasswordVisibility">
+          <!-- 如果使用了 uview-ui，可以使用 u-icon -->
+          <u-icon :name="showPassword ? 'eye' : 'eye-off'" size="20" color="#999"></u-icon>
+          
+          <!-- 如果没有 u-icon 或想简单实现，可以用文字或图片替代，这里用 unicode 字符示意 -->
+          <!-- <text class="icon-text">{{ showPassword ? '👁️' : '👁️‍🗨️' }}</text> -->
+        </view>
+        <view class="forget-password" v-if="retry < 3" @click="goRegister">忘记密码？</view>
       </view>
 
       <button class="login-btn" @click="handleLogin" :disabled="loading">

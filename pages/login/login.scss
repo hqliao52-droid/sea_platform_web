@@ -25,11 +25,79 @@
     .input-item {
       height: 88rpx;
       border-bottom: 1rpx solid #eee;
-      margin-bottom: 40rpx;
+      margin-bottom: 20rpx;
+      border-radius: 8rpx;
+      padding: 0 20rpx;
+      height: 80rpx;
+      display: flex;
+      align-items: center;
 
       input {
+        width: 100%;
         height: 100%;
-        font-size: 30rpx;
+        background-color: transparent;
+        border: none;
+        font-size: 28rpx;
+      }
+    }
+
+    .password-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 8rpx;
+      padding: 0 20rpx;
+      height: 80rpx;
+      margin-bottom: 20rpx;
+
+      .password-input {
+        flex: 1;
+        /* 输入框占据剩余空间 */
+        height: 100%;
+        background-color: transparent;
+        border: none;
+        font-size: 28rpx;
+        /* 确保输入框不会挤压图标 */
+        min-width: 0;
+      }
+
+      .eye-icon {
+        padding: 0 10rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        .icon-text {
+          font-size: 32rpx;
+          line-height: 1;
+        }
+      }
+
+      // .forget-password {
+      //   font-size: 24rpx;
+      //   color: #007aff;
+      //   /* 蓝色 */
+      //   white-space: nowrap;
+      //   margin-left: 10rpx;
+      //   /* 与眼睛图标保持间距 */
+      // }
+
+      input {
+        width: 80%;
+        /* 输入框占 80% */
+      }
+
+      .forget-password {
+        width: 20%;
+        /* 链接占 20% */
+        text-align: right;
+        font-size: 24rpx;
+        color: #007aff;
+        /* 蓝色 */
+        line-height: 80rpx;
+        /* 垂直居中，与 input 高度一致 */
+        cursor: pointer;
       }
     }
 
