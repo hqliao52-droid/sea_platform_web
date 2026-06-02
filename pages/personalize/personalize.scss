@@ -244,6 +244,7 @@
           color: #4080ff;
         }
       }
+
       .email-input-row {
         display: flex;
         align-items: center;
@@ -257,7 +258,7 @@
           padding: 0 16rpx;
           font-size: 26rpx;
           background-color: #fff;
-          
+
           // 禁用时的样式
           &[disabled] {
             background-color: #f9f9f9;
@@ -270,7 +271,7 @@
           font-size: 24rpx;
           color: #4080ff;
           white-space: nowrap; // 防止换行
-          
+
           &:active {
             opacity: 0.7;
           }
@@ -303,7 +304,7 @@
             border-radius: 8rpx;
             padding: 0 20rpx;
             font-size: 28rpx;
-            padding-right: 60rpx; 
+            padding-right: 60rpx;
             box-sizing: border-box;
           }
 
@@ -316,11 +317,12 @@
             color: #ccc;
             padding: 10rpx; // 增加点击区域
             z-index: 2;
-            
+
             &:active {
               color: #999;
             }
           }
+
           .verify-status-icon {
             position: absolute;
             right: 20rpx;
@@ -332,6 +334,7 @@
             .icon-success {
               color: #52c41a; // 绿色
             }
+
             .icon-error {
               color: #f5222d; // 红色
             }

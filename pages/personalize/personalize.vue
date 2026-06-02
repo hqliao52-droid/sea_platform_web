@@ -160,7 +160,12 @@
             </view>
             <text class="slider-value">{{ item.weight }}%</text>
           </view>
-          <slider class="custom-slider" :value="item.weight" @change="handleSliderChange($event, index)" :activeColor="item.color" backgroundColor="#eee" />
+          <slider 
+          class="custom-slider" 
+          :value="item.weight" 
+          @change="handleSliderChange($event, index)" 
+          :activeColor="item.color" 
+          backgroundColor="#eee" />
         </view>
       </view>
 
@@ -218,7 +223,8 @@
             >
               <!-- 使用之前修复的判断方法 -->
               <checkbox :checked="isCategorySelected(cat.id)" color="#4080ff" />
-              <text>{{ cat.tag_name }} - <text style="font-size: 20rpx;color: #ccc;">{{ cat.example }}</text></text>
+              <text>{{ cat.tag_name }} - 
+              <text style="font-size: 20rpx;color: #ccc;">{{ cat.example }}</text></text>
             </view>
           </view>
         </scroll-view>
