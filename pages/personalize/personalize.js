@@ -23,6 +23,11 @@ export default {
       notifyMethod: '邮箱',
       showNotifyModal: false,
 
+      isFirstEdit: true,
+      configId: null,
+      isChannelEdit: false,
+      channelTextStatus: false,
+
       // 邮箱相关
       email: '',
       verifyCode: '',
@@ -49,9 +54,9 @@ export default {
   },
   async onLoad() {
     await this.getUserConfig();
-    this.clearTimers(); 
+    this.clearTimers();
   },
-   onUnload() {
+  onUnload() {
     this.clearTimers();
   },
   methods: {
@@ -62,7 +67,7 @@ export default {
       this.verifyCode = '';
       this.tempEmail = this.email;
     },
-    disableEdit(){
+    disableEdit() {
       this.isChanged = false;
       this.email = this.tempEmail;
       this.verifyStatus = 'success';
@@ -82,7 +87,7 @@ export default {
     async getUserConfig() {
       try {
         uni.showLoading({ title: '加载中...' });
-        
+
         const res = await request({
           url: '/userConfig/get_config',
           method: 'POST',
@@ -95,24 +100,25 @@ export default {
         if (res.code === 200 || res.code === '200') {
           // TODO: 下一步操作：根据 res.data 初始化页面数据
           // 例如：
-          if(res.data != null){
+          if (res.data != null) {
             this.pushCount = res.data.max_push_amount;
             this.selectedCategories = res.data.weights || [];
             this.email = res.data.channels[0].channel_address || '';
             this.updated_at = res.data.updated_at;
-            if(res.data.channels[0].channel_address != null){
+            if (res.data.channels[0].channel_address != null) {
               this.isChanged = false;
               this.verifyStatus = 'success';
             }
             this.isUpdate = false;
           }
-          
+
         } else {
           uni.showToast({ title: res.msg || '获取配置失败', icon: 'none' });
         }
       } catch (err) {
         console.error('获取用户配置失败：', err);
         uni.showToast({ title: '网络异常', icon: 'none' });
+        this.isFirstEdit = true;
       } finally {
         uni.hideLoading();
       }
@@ -218,9 +224,9 @@ export default {
       this.selectedCategories[index].weight = e.detail.value
     },
     resetWeight() {
-      if(this.selectedCategories.length === 0){
-        uni.showToast({title:"请先选择推送类别", icon: "none"})
-        return ;
+      if (this.selectedCategories.length === 0) {
+        uni.showToast({ title: "请先选择推送类别", icon: "none" })
+        return;
       }
       // 1. 遍历已选类别，重新分配权重
       this.selectedCategories.forEach((item, index) => {
@@ -252,7 +258,7 @@ export default {
     onVerifyCodeInput(e) {
       const val = e.detail.value;
       this.verifyCode = val;
-      
+
       // 重置验证状态，因为用户正在修改
       this.verifyStatus = null;
 
@@ -265,10 +271,10 @@ export default {
       try {
         // 调用工具函数
         await verifyCode(this.email, code);
-        
+
         // 成功逻辑
         this.verifyStatus = 'success';
-        
+
       } catch (err) {
         // 失败逻辑
         this.verifyStatus = 'error';
@@ -288,7 +294,7 @@ export default {
         // 成功后的逻辑：提示成功 & 启动倒计时
         uni.showToast({ title: '验证码已发送', icon: 'success' });
         this.startCountdown();
-        
+
       } catch (err) {
         // 错误已在工具函数中处理（Toast），这里只需记录或做额外处理
         console.log('发送验证码流程结束');
@@ -332,8 +338,8 @@ export default {
       }
 
       // 2. 检查是否选择了类别
-      if (this.isUpdate){
-        if (this.selectedCategories.length === 0 ) {
+      if (this.isUpdate) {
+        if (this.selectedCategories.length === 0) {
           // 【修改】使用 showModal 弹出确认框
           uni.showModal({
             title: '提示',
@@ -353,7 +359,7 @@ export default {
           return; // 注意：这里直接 return，等待弹窗回调
         }
       }
-      
+
 
       // 3. 如果选择了类别，执行正常的保存逻辑（假设已有逻辑或复用下面的保存方法）
       await this.submitFullConfig();
@@ -441,7 +447,7 @@ export default {
         }
 
         const params = {
-          user_id: 0, 
+          user_id: 0,
           max_push_amount: this.pushCount,
           is_enabled: 1, // 正常保存通常设为启用 (1)
           updated_at: new Date().toISOString(),
@@ -455,7 +461,7 @@ export default {
         // 如果接口相同，只是 is_enabled 不同，则复用上面的逻辑即可。
         // 如果接口不同，请替换 url
         const res = await request({
-          url: '/userConfig/update_config', 
+          url: '/userConfig/update_config',
           method: 'PUT',
           data: params
         });
