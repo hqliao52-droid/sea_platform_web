@@ -1,12 +1,13 @@
 import { request } from '@/utils/request.js'
 import { addReadHistory } from '@/utils/history.js';
+import { getUserInfo } from '@/utils/user.js';
 
 export default {
   data() {
     return {
       news_id: '',
       rss_id: '',
-      newsData:{},
+      newsData: {},
       news_title: '',
       // AI核心摘要列表
       aiSummaryList: [],
@@ -14,14 +15,14 @@ export default {
       articleTags: [],
       // 关键词列表
       keywordList: [],
-      rss_source_name:'',
+      rss_source_name: '',
 
       rss_name: '',
 
       // 关联政策与案例列表
-      content:'',
-      isContentExpanded: false, 
-      displayContent: '' ,
+      content: '',
+      isContentExpanded: false,
+      displayContent: '',
       market_risk: '',
       policy_compliance: '',
       risk: false,
@@ -39,12 +40,12 @@ export default {
           desc: "通过在前置仓完成预分拣，将清关时间从 3 天缩短至 6 小时。"
         }
       ],
-      articleInfo:null,
+      articleInfo: null,
       // 动态提示语
       dynamicHintKeyword: '',
       // 定时器，用户页面卸载时清除
       hintTimer: null,
-      inputValue:''
+      inputValue: ''
     };
   },
   onReady() {
@@ -53,22 +54,22 @@ export default {
   onUnload() {
     this.stopHintRotation();
   },
-  onLoad (options){
+  onLoad(options) {
     this.news_id = options.id;
     this.rss_id = options.rss_id;
-    console.log('news_id:',this.news_id)
+    console.log('news_id:', this.news_id)
 
-    this.getNewsDetail(this.news_id,this.rss_id);
+    this.getNewsDetail(this.news_id, this.rss_id);
   },
-  computed:{
+  computed: {
     processedContent() {
       if (!this.content) return '';
-      
+
       // 如果已经展开，或者长度小于等于50，显示全部
       if (this.isContentExpanded || this.content.length <= 256) {
         return this.content;
       }
-      
+
       // 否则显示前50个字 + ...
       return this.content.substring(0, 256) + '...';
     }
@@ -76,18 +77,18 @@ export default {
   methods: {
     fillInputFromHint() {
       if (!this.dynamicHintKeyword) return;
-      
+
       // 组合完整的问题文案
       const question = `这篇文章对 ${this.dynamicHintKeyword} 有什么具体影响？`;
       this.inputValue = question;
-      
+
       // 可选：给予轻微震动反馈或 Toast 提示，增强交互感
       // uni.vibrateShort(); 
     },
     startHintRotation() {
       // 先执行一次，避免等待3秒才显示
       this.updateRandomKeyword();
-      
+
       // 设置定时器，每3秒执行一次
       this.hintTimer = setInterval(() => {
         this.updateRandomKeyword();
@@ -103,21 +104,21 @@ export default {
       if (!this.keywordList || this.keywordList.length === 0) {
         this.dynamicHintKeyword = '相关行业'; // 默认兜底文案
         return;
-      let newIndex;
-      let attempts = 0;
-      // 避免连续两次随机到同一个词
-      do {
-        newIndex = Math.floor(Math.random() * this.keywordList.length);
-        attempts++;
-      } while (
-        this.keywordList[newIndex] === this.dynamicHintKeyword && 
-        this.keywordList.length > 1 && 
-        attempts < 5
-      );
+        let newIndex;
+        let attempts = 0;
+        // 避免连续两次随机到同一个词
+        do {
+          newIndex = Math.floor(Math.random() * this.keywordList.length);
+          attempts++;
+        } while (
+          this.keywordList[newIndex] === this.dynamicHintKeyword &&
+          this.keywordList.length > 1 &&
+          attempts < 5
+        );
 
-      this.dynamicHintKeyword = this.keywordList[newIndex];
-    }
-      
+        this.dynamicHintKeyword = this.keywordList[newIndex];
+      }
+
       const randomIndex = Math.floor(Math.random() * this.keywordList.length);
       this.dynamicHintKeyword = this.keywordList[randomIndex];
     },
@@ -141,7 +142,7 @@ export default {
      */
     shouldOpenInSystemBrowser(url) {
       if (!url) return true;
-      
+
       // 定义不允许 iframe/webview 嵌入的常见域名关键词
       const blockedDomains = [
         'oschina.net',      // 开源中国
@@ -158,7 +159,7 @@ export default {
         // 简单解析域名，兼容 http/https
         const urlObj = new URL(url);
         const hostname = urlObj.hostname;
-        
+
         // 检查 hostname 是否包含黑名单中的任何一项
         return blockedDomains.some(domain => hostname.includes(domain));
       } catch (e) {
@@ -168,7 +169,7 @@ export default {
       }
     },
     // 新增：打开系统浏览器
-     openInBrowser() {
+    openInBrowser() {
       if (!this.newsData || !this.newsData.url) {
         uni.showToast({ title: '暂无原文链接', icon: 'none' });
         return;
@@ -187,11 +188,11 @@ export default {
               // #ifdef H5
               window.open(targetUrl, '_blank');
               // #endif
-              
+
               // #ifdef APP-PLUS
               plus.runtime.openURL(targetUrl);
               // #endif
-              
+
               // #ifdef MP-WEIXIN
               uni.setClipboardData({
                 data: targetUrl,
@@ -229,32 +230,35 @@ export default {
     openSetting() {
       uni.showToast({ title: "配置推送规则", icon: "none" });
     },
-    async getNewsDetail(){
+    async getNewsDetail() {
       try {
         const res = await request({
-          url: '/news_detail/get_detail_by_id?id='+this.news_id,
-          
+          url: '/news_detail/get_detail_by_id?id=' + this.news_id,
+
         })
         console.log('接口返回：', res)
         if (res.code === 200 || res.code === '200') {
           this.newsData = res.data
-          if(res.data){
+          if (res.data) {
             this.news_title = res.data.title;
             this.content = res.data.content || '';
             this.keywordList = res.data.ai_origin_output?.keywords || [];
             // 如果关键词列表更新了，立即更新一次显示，防止前3秒显示空或默认值
             this.updateRandomKeyword();
-            if(res.data.ai_origin_output.policy_risk.market_risk !== "未提及"){
+            if (res.data.ai_origin_output.policy_risk.market_risk !== "未提及") {
               this.market_risk = res.data.ai_origin_output?.policy_risk.market_risk || '';
               this.policy_compliance = res.data.ai_origin_output?.policy_risk.policy_compliance || '';
               this.risk = true;
             }
             const detail = res.data;
             this.articleInfo = detail;
-            addReadHistory(detail);
+            const userInfo = getUserInfo();
+            if (userInfo && userInfo.id) {
+              addReadHistory(this.newsData, userInfo.id); // 传入第二个参数 userId
+            }
 
             console.log(res.data);
-            
+
             const abstract = res.data.ai_origin_output?.abstract || '';
             if (abstract) {
               this.aiSummaryList = abstract.match(/[\s\S]*?。/g) || [abstract];
@@ -262,7 +266,7 @@ export default {
               this.aiSummaryList = [];
             }
 
-            try{
+            try {
               const res_rss = await request({
                 url: '/rss/get_by_id?id=' + this.rss_id,
               })
@@ -277,7 +281,6 @@ export default {
 
           }
         }
-        console.log('newsData:',this.newsData)
       } catch (err) {
         console.error('请求新闻失败：', err)
       }

@@ -1,9 +1,9 @@
-import {request} from '@/utils/request.js';
+import { request } from '@/utils/request.js';
 import { getUserInfo } from '@/utils/user.js';
 import { getReadHistory } from '@/utils/history.js';
 import { streamRequest } from '@/utils/stream-request.js';
 import hljs from 'highlight.js';
-import 'highlight.js/styles/atom-one-light.css'; 
+import 'highlight.js/styles/atom-one-light.css';
 import { onLoad } from 'uview-ui/libs/mixin/mixin';
 import { uploadSingleSpeciallyFile } from "@/utils/uploadFile.js"
 
@@ -24,12 +24,12 @@ export default {
       sessionList: [],
       groupedSessions: [],
 
-      inputText:'',
-      lastDeletedText:'',
+      inputText: '',
+      lastDeletedText: '',
 
-      textareaHeight: 50, 
+      textareaHeight: 50,
       maxLines: 4,
-      lineHeight: 40, 
+      lineHeight: 40,
 
       currentSessionId: null,
       isStreaming: false,
@@ -58,8 +58,8 @@ export default {
         code: 'font-family:monospace;font-size:24rpx;background:#f0f0f0;padding:2rpx 6rpx;border-radius:4rpx;'
       },
 
-      scrollTop: 0, 
-      recentHistory: [], 
+      scrollTop: 0,
+      recentHistory: [],
       isHistoryExpanded: false,
 
       selectedNewsIds: [],
@@ -67,18 +67,18 @@ export default {
       showPlusMenu: false,
       recentFiles: [],
       showRecentFilesList: false,
-      attachedFiles:[],
+      attachedFiles: [],
 
     };
   },
-  onShow(){
+  onShow() {
     this.loadUserInfo();
     this.loadRecentHistory();
     this.$nextTick(() => {
       this.initDefaultSession();
     });
   },
-  onLoad() { 
+  onLoad() {
     this.loadRecentFiles();
   },
 
@@ -99,9 +99,12 @@ export default {
     },
     async handleUploadAttachment() {
       let isLoadingShown = false; // 标记 Loading 是否已显示
+      // 最大上传10MB的文件
+      const MAX_FILE_SIZE = 10 * 1024 * 1024;
       try {
         let filePath = '';
         let fileName = '';
+        let fileSize = 0;
 
         // #ifdef H5
         // H5 端使用 chooseFile
@@ -116,6 +119,7 @@ export default {
         if (h5Res && h5Res.tempFiles && h5Res.tempFiles.length > 0) {
           filePath = h5Res.tempFiles[0].path;
           fileName = h5Res.tempFiles[0].name;
+          fileSize = h5Res.tempFiles[0].size;
         } else {
           return;
         }
@@ -134,6 +138,7 @@ export default {
         if (wxRes && wxRes.tempFiles && wxRes.tempFiles.length > 0) {
           filePath = wxRes.tempFiles[0].path;
           fileName = wxRes.tempFiles[0].name;
+          fileSize = wxRes.tempFiles[0].size;
         } else {
           return;
         }
@@ -146,6 +151,16 @@ export default {
         // #endif
 
         if (!filePath) {
+          return;
+        }
+
+        // 检查文件大小
+        if (fileSize > MAX_FILE_SIZE) {
+          uni.showToast({
+            title: `文件大小超过限制(10MB)，当前: ${(fileSize / 1024 / 1024).toFixed(2)}MB`,
+            icon: 'none',
+            duration: 3000
+          });
           return;
         }
 
@@ -163,7 +178,7 @@ export default {
           icon: 'success'
         });
 
-        // TODO: 处理上传结果，例如保存到 this.attachedFiles
+        // TODO: 处理上传结果，保存到 this.attachedFiles
         if (this.attachedFiles) {
           this.attachedFiles.push(uploadResult);
           this.recentFiles.push(uploadResult);
@@ -171,7 +186,7 @@ export default {
 
       } catch (err) {
         console.error('上传过程异常:', err);
-        
+
         // 1. 处理用户取消选择的情况
         if (err.errMsg && (err.errMsg.includes('cancel') || err.errMsg.includes('fail cancel'))) {
           console.log('用户取消了文件选择');
@@ -208,7 +223,7 @@ export default {
     toggleNewsSelection(item) {
       const id = item.id;
       const index = this.selectedNewsIds.indexOf(id);
-      
+
       if (index > -1) {
         // 已选中，则取消选中
         this.selectedNewsIds.splice(index, 1);
@@ -227,16 +242,16 @@ export default {
     },
     clearInputWithBackup() {
       if (!this.inputText) return;
-      
+
       // 1. 备份当前内容
       this.lastDeletedText = this.inputText;
-      
+
       // 2. 清空输入框
       this.inputText = '';
-      
+
       // 3. 重置高度
       this.textareaHeight = 50;
-      
+
       // 4. 可选：给个轻微提示
       uni.showToast({
         title: '已暂存，可点击恢复',
@@ -244,7 +259,7 @@ export default {
         duration: 500
       });
     },
-    clearInputWithbackUpBar(){
+    clearInputWithbackUpBar() {
       if (!this.lastDeletedText) return;
       this.lastDeletedText = "";
 
@@ -255,39 +270,39 @@ export default {
         // 恢复后清空暂存区，或者保留以便多次粘贴？通常清空比较好，避免混淆
         // 这里选择保留，直到用户再次删除或手动清空，或者你可以选择清空：
         // this.lastDeletedText = ''; 
-        
+
         // 重新计算高度
         this.$nextTick(() => {
-           // 触发一次 input 事件来重新计算高度，或者直接调用 onInput 模拟
-           const mockEvent = { detail: { value: this.inputText } };
-           this.onInput(mockEvent);
+          // 触发一次 input 事件来重新计算高度，或者直接调用 onInput 模拟
+          const mockEvent = { detail: { value: this.inputText } };
+          this.onInput(mockEvent);
         });
       }
     },
     onInput(e) {
       const value = e.detail.value;
       this.inputText = value;
-      
+
       // 简单估算行数：根据换行符 \n 和 字符长度
       // 这里做一个简化的估算，更精确的需要获取光标位置或渲染后测量
       // 假设每行约 20 个中文字符（根据字体大小调整）
       const lines = value.split('\n');
       let estimatedLines = 0;
-      
+
       lines.forEach(line => {
         // 每 25 个字符算一行（根据实际字体大小微调）
         estimatedLines += Math.ceil(line.length / 25) || 1;
       });
-      
+
       // 限制最大行数
       if (estimatedLines > this.maxLines) {
         estimatedLines = this.maxLines;
       }
-      
+
       // 计算新高度：基础 padding + 行数 * 行高
       // 假设 padding 上下各 20rpx，行高 40rpx
-      const newHeight = 40 + (estimatedLines * this.lineHeight); 
-      
+      const newHeight = 40 + (estimatedLines * this.lineHeight);
+
       // 更新高度
       this.textareaHeight = newHeight;
     },
@@ -299,7 +314,7 @@ export default {
         this.recentHistory = getReadHistory(this.userInfo.id);
       } else {
         this.recentHistory = [];
-  }
+      }
     },
 
     // 简易 Markdown -> HTML（只覆盖你当前需求：加粗、换行、编号列表/列表项）
@@ -316,9 +331,9 @@ export default {
       // 存储提取的代码块
       const codeBlocks = [];
       const mermaidBlocks = [];
-      
+
       let processed = src;
-      
+
       // 1. 提取Mermaid代码块 - 修复正则表达式，正确匹配结束标记
       processed = processed.replace(/```mermaid\s*\n([\s\S]*?)```/g, (match, code) => {
         const id = `MERMAID_${mermaidBlocks.length}`;
@@ -331,17 +346,17 @@ export default {
         // 返回一个占位符，用特殊标记包裹
         return `\n<!--MERMAID_START--><div class="mermaid-placeholder" data-mermaid-id="${id}">${this.escapeHtml(cleanCode)}</div><!--MERMAID_END-->\n`;
       });
-      
+
       // 2. 提取普通代码块 - 同样修复正则表达式
       processed = processed.replace(/```(\w*)\s*\n([\s\S]*?)```/g, (match, lang, code) => {
         // 跳过mermaid（已经在上面处理了）
         if (lang.toLowerCase() === 'mermaid') {
           return match;
         }
-        
+
         const id = `CODE_${codeBlocks.length}`;
         const cleanCode = code.replace(/\n+$/, '').trimEnd();
-        
+
         // 高亮处理
         let highlightedCode = '';
         if (lang && hljs.getLanguage(lang)) {
@@ -353,14 +368,14 @@ export default {
         } else {
           highlightedCode = this.escapeHtml(cleanCode);
         }
-        
+
         codeBlocks.push({
           id,
           lang: lang || 'text',
           code: cleanCode,
           highlighted: highlightedCode
         });
-        
+
         return `\n<!--CODEBLOCK_START--><div class="code-block-wrapper" data-code-id="${id}">
           <div class="code-block-header">
             <span class="code-lang">${lang || 'text'}</span>
@@ -369,7 +384,7 @@ export default {
           <pre><code class="hljs ${lang ? 'language-' + lang : ''}">${highlightedCode}</code></pre>
         </div><!--CODEBLOCK_END-->\n`;
       });
-      
+
       // 3. 处理行内代码（注意：不要影响已处理的代码块）
       processed = processed.replace(/(?<!`)`([^`\n]+)`(?!`)/g, '<code inline>$1</code>');
 
@@ -381,7 +396,7 @@ export default {
 
       for (let i = 0; i < lines.length; i++) {
         const rawLine = lines[i];
-        
+
         // 检查是否是特殊块的开始/结束标记
         if (rawLine.includes('<!--MERMAID_START-->') || rawLine.includes('<!--CODEBLOCK_START-->')) {
           // 如果在列表中，先闭合
@@ -395,20 +410,20 @@ export default {
           out.push(cleanLine);
           continue;
         }
-        
+
         if (rawLine.includes('<!--MERMAID_END-->') || rawLine.includes('<!--CODEBLOCK_END-->')) {
           const cleanLine = rawLine.replace(/<!--(?:MERMAID|CODEBLOCK)_END-->/g, '');
           out.push(cleanLine);
           inBlock = false;
           continue;
         }
-        
+
         // 如果当前在代码块中，直接输出
         if (inBlock) {
           out.push(rawLine);
           continue;
         }
-        
+
         // 标题处理
         const headerMatch = rawLine.match(/^(\#{1,6})\s+(.*)$/);
         if (headerMatch) {
@@ -421,7 +436,7 @@ export default {
           out.push(`<h${level}>${content}</h${level}>`);
           continue;
         }
-        
+
         // 有序列表处理
         const line = rawLine || '';
         const m = line.match(/^\s*(\d+)\.\s+(.*)$/);
@@ -455,7 +470,7 @@ export default {
       }
 
       if (inOl) out.push('</ol>');
-      
+
       return out.join('');
     },
 
@@ -531,8 +546,8 @@ export default {
 
       // 状态文案映射
       const STATUS_TEXT_MAP = {
-        'analyzing':  '正在分析问题...',
-        'reading':    '正在阅读用户提供的资料...',
+        'analyzing': '正在分析问题...',
+        'reading': '正在阅读用户提供的资料...',
         'retrieving': '正在检索资料...',
         'generating': '正在生成回复...',
       };
@@ -567,8 +582,8 @@ export default {
             const key = statusMatch[1];
             if (STATUS_TEXT_MAP[key]) {
               that.statusText = STATUS_TEXT_MAP[key];
-              that.$set(that.messageList,aiIndex,{...that.messageList[aiIndex]})
-              await new Promise(r=>setTimeout(r, 1000))
+              that.$set(that.messageList, aiIndex, { ...that.messageList[aiIndex] })
+              await new Promise(r => setTimeout(r, 1000))
             }
             buffer = buffer.replace(statusMatch[0], '');
             changed = true;
@@ -631,7 +646,7 @@ export default {
         uni.showToast({ title: '请先登录', icon: 'none' });
         return;
       }
-      
+
       // 检查会话ID (如果没有，先创建新会话)
       if (!this.currentSessionId) {
         await this.createAndInitNewSession();
@@ -645,27 +660,27 @@ export default {
         role: "user",
         content: content,
         created_time: this.formatTimeShort(new Date()),
-        llm_refer_data: llm_refer_data, 
+        llm_refer_data: llm_refer_data,
         isReferencesExpanded: false
       };
       this.messageList.push(userMsg);
-      
+
       // 2. 加一个空的AI消息（用来流式打字）- 使用 $set 确保响应式
       const aiMsgIndex = this.messageList.length;
       const aiMsg = {
         role: "assistant",
         content: "",
         renderedHtml: "",
-        llm_refer_data:[],
+        llm_refer_data: [],
         created_time: this.formatTimeShort(new Date()),
         suggestions: [],
         sources: []
       };
       this.messageList.push(aiMsg);
-      
+
       // 确保 AI 消息是响应式的
       this.$set(this.messageList, aiMsgIndex, aiMsg);
-      
+
       const aiIndex = aiMsgIndex; // 保存索引供后续使用
 
       const currentInput = this.inputText;
@@ -688,7 +703,7 @@ export default {
             "query": content,
             "user_id": parseInt(this.userInfo.id),
             "session_id": this.currentSessionId || 0,
-            "news_ids": currentNewsIds 
+            "news_ids": currentNewsIds
           }
         });
 
@@ -698,7 +713,7 @@ export default {
         console.log('insert_message 返回:', res);
 
         const task_id = res.data.task_id;
-        
+
         // 开始流式接收
         this.startWS(task_id, aiIndex);
 
@@ -735,14 +750,14 @@ export default {
         .filter(item => this.selectedNewsIds.includes(item.id))
         .map(item => item.title);
     },
-    async loadUserInfo(){
+    async loadUserInfo() {
       const userInfo = getUserInfo();
       console.log('用户信息：', userInfo);
-      if(userInfo){
+      if (userInfo) {
         this.nikeName = userInfo.nickname;
         this.avatar = userInfo.avatar || '/static/images/default-avatar.png';
         this.userInfo = userInfo;
-      }else{
+      } else {
         // 未登录
         // uni.redirectTo({ url: '/pages/login/login' });
       }
@@ -765,7 +780,7 @@ export default {
 
       try {
         uni.showLoading({ title: '加载中...' });
-        
+
         // 1. 获取所有会话
         const res = await request({
           url: '/session/get_sessions',
@@ -775,7 +790,7 @@ export default {
 
         if (res.code === 200 || res.code === '200') {
           const sessions = res.data || [];
-          
+
           if (sessions && sessions.length > 0) {
             // 2. 按 update_time 降序排列，取第一个（最新的）
             // 注意：确保后端返回的时间格式能被 Date 解析，通常是 ISO 字符串或时间戳
@@ -787,10 +802,10 @@ export default {
 
             const latestSession = sessions[0];
             console.log('加载最新会话:', latestSession);
-            
+
             // 3. 设置当前会话 ID 并加载消息
             this.currentSessionId = latestSession.id;
-            
+
             // 更新侧边栏数据（可选，为了保持状态一致）
             this.sessionList = sessions;
             this.groupSessionsByDate(this.sessionList);
@@ -820,7 +835,7 @@ export default {
     // 【新增】加载指定会话的消息
     async loadSessionMessages(sessionId) {
       if (!sessionId) return;
-      
+
       try {
         const res = await request({
           url: '/chatMessage/get_by_session_id',
@@ -833,14 +848,14 @@ export default {
           // 处理消息，生成 renderedHtml
           this.messageList = rawList.map(m => {
             if (m && m.role === 'assistant') {
-              return { 
-                ...m, 
-                renderedHtml: this.renderMarkdownToHtml(m.content || '') 
+              return {
+                ...m,
+                renderedHtml: this.renderMarkdownToHtml(m.content || '')
               };
             }
             return m;
           });
-          
+
           // 滚动到底部
           this.scrollToBottom();
           console.log('会话消息加载完成，数量:', this.messageList.length);
@@ -861,7 +876,7 @@ export default {
         uni.showToast({ title: '请先登录', icon: 'none' });
         return;
       }
-      
+
       try {
         const res = await request({
           url: '/session/new_session',
@@ -881,7 +896,7 @@ export default {
         uni.showToast({ title: '网络请求失败', icon: 'none' });
       }
     },
-    async newSession(){
+    async newSession() {
       this.newSessionWindowLoading = false;
       this.messageList = [];
       this.currentSessionId = null;
@@ -890,44 +905,44 @@ export default {
 
       this.newSessionWindowLoading = true;
     },
-    async getSessions(){
-      if(this.showSidebar){
+    async getSessions() {
+      if (this.showSidebar) {
         this.showSidebar = false;
         return;
       }
 
-      if(!this.userInfo || !this.userInfo.id){
-        uni.showToast({title: '请先登录',icon: 'none'});
+      if (!this.userInfo || !this.userInfo.id) {
+        uni.showToast({ title: '请先登录', icon: 'none' });
         return;
       }
 
-      try{
+      try {
         uni.showLoading({ title: '加载中...' });
 
         const res = await request({
           url: '/session/get_sessions',
-          method:"GET",
-          data: {user_id: parseInt(this.userInfo.id)}
+          method: "GET",
+          data: { user_id: parseInt(this.userInfo.id) }
         });
 
-        if(res.code === 200 || res.code === '200'){
+        if (res.code === 200 || res.code === '200') {
           this.sessionList = res.data || [];
           this.groupSessionsByDate(this.sessionList);
           this.showSidebar = true;
-        }else{
-          uni.showToast({title: res.msg || '拉取会话列表失败',icon: 'none'});
+        } else {
+          uni.showToast({ title: res.msg || '拉取会话列表失败', icon: 'none' });
         }
 
-      }catch(err){ 
+      } catch (err) {
         console.error('Get Sessions Error:', err.data);
-        uni.showToast({title: '网络请求失败',icon: 'none'});
-      }finally{
+        uni.showToast({ title: '网络请求失败', icon: 'none' });
+      } finally {
         uni.hideLoading();
       }
     },
 
     // 按日期分组会话
-    groupSessionsByDate(list) { 
+    groupSessionsByDate(list) {
       if (!list || list.length === 0) {
         this.groupedSessions = [];
         return;
@@ -939,11 +954,11 @@ export default {
       list.forEach(item => {
         const dateStr = item.update_time || item.created_time;
         const dateObj = new Date(dateStr);
-        
+
         // 获取今天的日期对象（清零时间部分以便比较）
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         const targetDate = new Date(dateObj);
         targetDate.setHours(0, 0, 0, 0);
 
@@ -982,27 +997,27 @@ export default {
       this.showSidebar = false;
     },
 
-     // --- 点击某个会话 ---
-     selectSession(session) {
+    // --- 点击某个会话 ---
+    selectSession(session) {
       this.currentSessionId = session.id;
       console.log('选中会话:', session);
       // TODO: 这里可以添加跳转逻辑或加载该会话的历史消息
       // 例如: this.loadSessionMessages(session.id);
 
-      if(!this.userInfo || !this.userInfo.id){
-        uni.showToast({title: '请先登录',icon: 'none'});
+      if (!this.userInfo || !this.userInfo.id) {
+        uni.showToast({ title: '请先登录', icon: 'none' });
         return;
       }
 
-      try{
+      try {
         uni.showLoading({ title: '加载中...' });
 
         request({
           url: '/chatMessage/get_by_session_id',
-          method:"GET",
-          data: {session_id: session.id}
+          method: "GET",
+          data: { session_id: session.id }
         }).then(res => {
-          if(res.code === 200 || res.code === '200'){
+          if (res.code === 200 || res.code === '200') {
             console.log('会话消息返回：', res);
             this.messageList = (res.data || []).map(m => {
               if (m && m.role === 'assistant') {
@@ -1010,14 +1025,14 @@ export default {
               }
               return m;
             });
-          }else{
-            uni.showToast({title: res.msg || '拉取会话消息失败',icon: 'none'});
+          } else {
+            uni.showToast({ title: res.msg || '拉取会话消息失败', icon: 'none' });
           }
         })
-      }catch(err){
+      } catch (err) {
         console.error('Get Session Messages Error:', err);
       }
-      finally{
+      finally {
         uni.hideLoading();
       }
       this.closeSidebar();
