@@ -1,3 +1,4 @@
+import config from './config.js';
 /**
  * 通用文件上传工具（支持多文件，最多3个）
  * 上传接口：/file/upload_file
@@ -45,7 +46,7 @@ function uploadSingleFile(filePath) {
         uni.showLoading({ title: '上传中...' })
 
         uni.uploadFile({
-            url: 'http://106.52.97.98:8000/file/upload_file',
+            url: config.baseURL + '/file/upload_file',
             filePath: filePath,
             name: 'file',
             method: 'POST',
@@ -98,7 +99,7 @@ export async function uploadSingleSpeciallyFile(filePath) {
         uni.showLoading({ title: '上传中...' })
 
         uni.uploadFile({
-            url: 'http://106.52.97.98:8000/file/upload_file',
+            url: config.baseURL + '/file/upload_file',
             filePath: filePath,
             name: 'file',
             method: 'POST',

@@ -1,5 +1,6 @@
-import {request} from '@/utils/request.js';
+import { request } from '@/utils/request.js';
 import { getUserInfo } from '@/utils/user.js';
+import { uploadSingleSpeciallyFile } from '@/utils/uploadFile.js';
 
 export default {
   data() {
@@ -29,11 +30,11 @@ export default {
       ]
     };
   },
-  onShow(){
+  onShow() {
     // 每次页面显示时重新获取最新用户信息
     this.loadUserInfo();
   },
-  methods:{
+  methods: {
     handleMenuClick(item) {
       console.log('点击了菜单：', item.title);
 
@@ -66,7 +67,7 @@ export default {
           break;
       }
     },
-    showPushHistroy(){
+    showPushHistroy() {
       uni.navigateTo({
         url: '/pages/pushHistory/pushHistory'
       });
@@ -96,38 +97,24 @@ export default {
       this.chooseAndUploadAvatar(); // 再调用选择上传
     },
 
-    uploadAvatar(filePath) {
+    async uploadAvatar(filePath) {
       uni.showLoading({ title: '上传中...' });
 
-      uni.uploadFile({
-        // 【注意】建议将 URL 提取到配置文件，这里暂时保留原样
-        url: 'http://106.52.97.98:8000/file/upload_file', 
-        filePath: filePath,
-        name: 'file',
-        method: 'POST',
-        // 【重要】如果需要登录态，可能需要手动添加 Header，或者确保 uni.uploadFile 自动携带 Cookie/Token
-        // header: { 'Authorization': uni.getStorageSync('token') }, 
-        success: (uploadRes) => {
-          try {
-            const data = JSON.parse(uploadRes.data);
-            if (data.code === 200 || data.code === '200') {
-              const newAvatarUrl = data.data.url;
-              this.updateUserAvatar(newAvatarUrl);
-            } else {
-              uni.showToast({ title: data.msg || '上传失败', icon: 'none' });
-            }
-          } catch (e) {
-            console.error(e);
-            uni.showToast({ title: '上传解析失败', icon: 'none' });
-          }
-        },
-        fail: () => {
-          uni.showToast({ title: '上传请求失败', icon: 'none' });
-        },
-        complete: () => {
-          uni.hideLoading();
+      try {
+        // 调用封装好的上传接口，它内部已经使用了统一的 config.baseURL
+        const result = await uploadSingleSpeciallyFile(filePath);
+
+        // result 应该包含 { filename, url }，具体取决于你后端返回的结构
+        // 假设 uploadSingleSpeciallyFile 返回的是 data.data，即 { url: '...' }
+        if (result && result.url) {
+          await this.updateUserAvatar(result.url);
         }
-      });
+      } catch (err) {
+        console.error('上传异常', err);
+        // uploadSingleSpeciallyFile 内部已经做了 toast 提示，这里可以不做处理，或者做额外处理
+      } finally {
+        uni.hideLoading();
+      }
     },
     goToPersonalize() {
       uni.navigateTo({
@@ -139,7 +126,7 @@ export default {
       try {
         // 1. 调用后端接口更新用户信息
         const res = await request({
-          url: '/user/update_info', 
+          url: '/user/update_info',
           method: 'PUT',
           data: {
             avatar: newUrl
@@ -148,10 +135,10 @@ export default {
 
         // 2. 判断业务逻辑是否成功 (假设 code 为 '200' 或 200 表示成功)
         if (res.code === '200' || res.code === 200) {
-          
+
           // 3. 更新前端页面显示
           this.avatar = newUrl;
-          
+
           // 4. 更新本地缓存的用户信息，保证下次进入页面或刷新时也是新头像
           const userInfo = getUserInfo();
           if (userInfo) {
@@ -159,7 +146,7 @@ export default {
             uni.setStorageSync('userInfo', userInfo);
             console.log('本地用户信息已更新');
           }
-          
+
           uni.showToast({ title: "头像修改成功", icon: 'success' });
         } else {
           // 业务逻辑失败（如后端返回 code: 500 或其他错误码）
@@ -172,36 +159,36 @@ export default {
       }
     },
     // ... 原有的 loadUserInfo 和 logout 保持不变
-    async loadUserInfo(){
+    async loadUserInfo() {
       const userInfo = getUserInfo();
-      if(userInfo){
+      if (userInfo) {
         this.nikeName = userInfo.nickname;
         this.avatar = userInfo.avatar || '/static/images/default-avatar.png';
-      }else{
+      } else {
         // 未登录
         // uni.redirectTo({ url: '/pages/login/login' });
       }
     },
-    async logout(){
-        try{
-            const res = await request({
-              url: '/user/logout',
-              method: 'POST'
-            })
-            if (res.code === '200' || res.code === 200) {
-              uni.showToast({ title: '退出登录成功', icon: 'success' })
-              uni.removeStorageSync('token');
-              uni.reLaunch({
-                url: '/pages/login/login'
-              })
-            } else {
-              uni.showToast({ title: res.msg || '退出登录失败', icon: 'none' })
-            }
+    async logout() {
+      try {
+        const res = await request({
+          url: '/user/logout',
+          method: 'POST'
+        })
+        if (res.code === '200' || res.code === 200) {
+          uni.showToast({ title: '退出登录成功', icon: 'success' })
+          uni.removeStorageSync('token');
+          uni.reLaunch({
+            url: '/pages/login/login'
+          })
+        } else {
+          uni.showToast({ title: res.msg || '退出登录失败', icon: 'none' })
         }
-        catch(err){
-          console.error('Logout Error:', err)
-          uni.showToast({ title: '网络请求失败', icon: 'none' })
-        }
+      }
+      catch (err) {
+        console.error('Logout Error:', err)
+        uni.showToast({ title: '网络请求失败', icon: 'none' })
+      }
     }
   }
 };

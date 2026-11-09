@@ -6,6 +6,7 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-light.css';
 import { onLoad } from 'uview-ui/libs/mixin/mixin';
 import { uploadSingleSpeciallyFile } from "@/utils/uploadFile.js"
+import config from '@/utils/config.js';
 
 export default {
   data() {
@@ -552,8 +553,10 @@ export default {
         'generating': '正在生成回复...',
       };
 
+      const wsAddress = `${config.wsURL}/chatMessage/ws/chat/${taskId}`;
+
       uni.connectSocket({
-        url: `ws://106.52.97.98:8000/chatMessage/ws/chat/${taskId}`,
+        url: wsAddress,
         success() {
           console.log("WS连接发起成功");
         }

@@ -1,6 +1,7 @@
 import { getUserInfo } from '@/utils/user.js';
 import { request } from '@/utils/request.js'
 import { sendVerifyCode, verifyCode } from '@/utils/email.js'
+import { uploadSingleSpeciallyFile } from '@/utils/uploadFile.js';
 
 export default {
   data() {
@@ -29,7 +30,7 @@ export default {
       created_time: '',
       updated_time: '',
       last_login_time: '',
-      statusClass: '', 
+      statusClass: '',
       role: '',
 
       showAvatarPreview: false,
@@ -52,7 +53,7 @@ export default {
       // 正则：至少包含一个数字和一个字母
       const hasNumber = /\d/.test(pwd);
       const hasLetter = /[a-zA-Z]/.test(pwd);
-      
+
       if (!hasNumber || !hasLetter) {
         return '密码必须同时包含数字和字母';
       }
@@ -86,7 +87,7 @@ export default {
 
       try {
         uni.showLoading({ title: '修改中...' });
-        
+
         const res = await request({
           url: '/user/update_password',
           method: 'PUT',
@@ -97,20 +98,20 @@ export default {
         });
 
         if (res.code === '200' || res.code === 200) {
-          uni.showToast({ 
-            title: '密码修改成功，请重新登录', 
+          uni.showToast({
+            title: '密码修改成功，请重新登录',
             icon: 'success',
-            duration: 2000 
+            duration: 2000
           });
 
           // 【新增】修改成功后执行退出登录逻辑
-          
+
           // 1. 清除本地 Token
           uni.removeStorageSync('token');
-          
+
           // 2. 清除本地用户信息缓存
           uni.removeStorageSync('userInfo');
-          
+
           // 3. 重置表单状态（可选，因为马上要跳转了）
           this.editPassword = false;
           this.oldPassword = '';
@@ -152,35 +153,23 @@ export default {
         }
       });
     },
-    uploadAvatar(filePath) {
+    async uploadAvatar(filePath) {
       uni.showLoading({ title: '上传中...' });
 
-      uni.uploadFile({
-        url: 'http://106.52.97.98:8000/file/upload_file',
-        filePath: filePath,
-        name: 'file',
-        method: 'POST',
-        success: (uploadRes) => {
-          try {
-            const data = JSON.parse(uploadRes.data);
-            if (data.code === 200 || data.code === '200') {
-              const newAvatarUrl = data.data.url;
-              this.updateUserAvatar(newAvatarUrl);
-            } else {
-              uni.showToast({ title: data.msg || '上传失败', icon: 'none' });
-            }
-          } catch (e) {
-            console.error(e);
-            uni.showToast({ title: '上传解析失败', icon: 'none' });
-          }
-        },
-        fail: () => {
-          uni.showToast({ title: '上传请求失败', icon: 'none' });
-        },
-        complete: () => {
-          uni.hideLoading();
+      try {
+        // 调用 utils/uploadFile.js 中的方法，它内部已经使用了 config.baseURL
+        const result = await uploadSingleSpeciallyFile(filePath);
+
+        // 假设返回结构为 { url: '...' }，具体根据你的后端返回调整
+        if (result && result.url) {
+          await this.updateUserAvatar(result.url);
         }
-      });
+      } catch (err) {
+        console.error('上传异常', err);
+        // uploadSingleSpeciallyFile 内部已有 Toast 提示，这里可省略或做额外处理
+      } finally {
+        uni.hideLoading();
+      }
     },
     async updateUserAvatar(newUrl) {
       try {
@@ -195,14 +184,14 @@ export default {
         if (res.code === '200' || res.code === 200) {
           // 1. 更新页面显示
           this.avatar = newUrl;
-          
+
           // 2. 更新本地缓存
           const userInfo = getUserInfo();
           if (userInfo) {
             userInfo.avatar = newUrl;
             uni.setStorageSync('userInfo', userInfo);
           }
-          
+
           uni.showToast({ title: "头像修改成功", icon: 'success' });
         } else {
           uni.showToast({ title: res.msg || '更新失败', icon: 'none' });
@@ -234,9 +223,9 @@ export default {
         this.setStatusClass();
         this.created_time = userInfo.created_time;
         this.updated_time = userInfo.updated_time;
-        if(userInfo.role === 'admin'){
+        if (userInfo.role === 'admin') {
           this.role = '管理员';
-        }else if(userInfo.role === 'user'){
+        } else if (userInfo.role === 'user') {
           this.role = '用户';
         }
         this.last_login_time = userInfo.last_login_time;

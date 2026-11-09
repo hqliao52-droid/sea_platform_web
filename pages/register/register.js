@@ -1,5 +1,6 @@
 import { request } from '@/utils/request.js';
 import { registerSendVerifyCode, registerVerifyCode } from '@/utils/email.js';
+import config from '@/utils/config.js';
 
 export default {
   data() {
@@ -51,15 +52,15 @@ export default {
       }
       return '获取验证码';
     },
-    onVerifyPhone(e){
+    onVerifyPhone(e) {
       const val = e.detail.value;
       this.verifyPhone = val;
 
-      if (val.length === 11 && this.form.phone){
+      if (val.length === 11 && this.form.phone) {
         this.autoVerifyPhone(val);
       }
     },
-    async autoVerifyPhone(){
+    async autoVerifyPhone() {
       try {
         await this.verify(this.verifyPhone);
         this.verifyStatus = "success";
@@ -67,8 +68,8 @@ export default {
         this.verifyStatus = "fail";
       }
     },
-    async verify(phone,username){
-      try{
+    async verify(phone, username) {
+      try {
         const res = await request({
           url: '/user/verify',
           method: 'POST',
@@ -77,7 +78,7 @@ export default {
             username: username || null
           }
         });
-      }catch(err){
+      } catch (err) {
         throw err;
       }
     },
@@ -100,7 +101,7 @@ export default {
 
       // 上传文件 不要手动加 header！！！
       uni.uploadFile({
-        url: 'http://106.52.97.98:8000/file/upload_file',
+        url: config.baseURL + '/file/upload_file',
         filePath: filePath,
         name: 'file',
         method: 'POST',
@@ -132,7 +133,7 @@ export default {
     async handleSendCode() {
       const email = this.form.email.trim();
       const emailReg = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      
+
       if (!email) {
         uni.showToast({ title: '请输入邮箱', icon: 'none' });
         return;
@@ -153,7 +154,7 @@ export default {
     startCountdown() {
       this.countdown = 60;
       if (this.timer) clearInterval(this.timer);
-      
+
       this.timer = setInterval(() => {
         if (this.countdown > 0) {
           this.countdown--;
@@ -180,7 +181,7 @@ export default {
         await registerVerifyCode(email, code);
         this.isEmailVerified = true;
         uni.showToast({ title: '验证成功，您可再次单击输入框重新编辑邮箱！', icon: 'success' });
-        
+
         // 验证成功后停止倒计时
         if (this.timer) {
           clearInterval(this.timer);

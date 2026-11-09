@@ -128,7 +128,7 @@
             "disableHostCheck" : true,
             "proxy" : {
                 "/chatMessage" : {
-                    "target" : "http://106.52.97.98:8000", // 【关键】这里填你真实的后端地址
+                    "target" : "http://43.136.130.244:8000", // 【关键】这里填你真实的后端地址
                     "changeOrigin" : true,
                     "secure" : false,
                     "pathRewrite" : {
@@ -136,7 +136,17 @@
                     }
                 },
                 "/session" : {
-                    "target" : "http://106.52.97.98:8000", // 如果会话接口也在同一个后端
+                    "target" : "http://43.136.130.244:8000", // 如果会话接口也在同一个后端
+                    "changeOrigin" : true,
+                    "secure" : false
+                },
+                "/user" : {
+                    "target" : "http://43.136.130.244:8000",
+                    "changeOrigin" : true,
+                    "secure" : false
+                },
+                "/file" : {
+                    "target" : "http://43.136.130.244:8000",
                     "changeOrigin" : true,
                     "secure" : false
                 }
