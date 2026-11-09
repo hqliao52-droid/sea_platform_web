@@ -8,6 +8,7 @@ build/
 dist/
 *.egg-info/
 *.egg
+node_modules/
 
 # 虚拟环境
 venv/
@@ -27,7 +28,7 @@ htmlcov/
 # 其他
 *.log
 .DS_Store
-node_modules/
 unpackage/
 .DS_Store
 dist/
+.hbuilderx/

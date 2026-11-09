@@ -128,7 +128,7 @@
             "disableHostCheck" : true,
             "proxy" : {
                 "/chatMessage" : {
-                    "target" : "http://43.136.130.244:8000", // 【关键】这里填你真实的后端地址
+                    "target" : "http://47.108.169.91:8000", // 唯一来源：config/server.config.js，修改后运行 npm run config:sync
                     "changeOrigin" : true,
                     "secure" : false,
                     "pathRewrite" : {
@@ -136,17 +136,17 @@
                     }
                 },
                 "/session" : {
-                    "target" : "http://43.136.130.244:8000", // 如果会话接口也在同一个后端
+                    "target" : "http://47.108.169.91:8000", // 会话接口与后端同源，由 config/server.config.js 同步
                     "changeOrigin" : true,
                     "secure" : false
                 },
                 "/user" : {
-                    "target" : "http://43.136.130.244:8000",
+                    "target" : "http://47.108.169.91:8000", // 由 config/server.config.js 同步
                     "changeOrigin" : true,
                     "secure" : false
                 },
                 "/file" : {
-                    "target" : "http://43.136.130.244:8000",
+                    "target" : "http://47.108.169.91:8000", // 由 config/server.config.js 同步
                     "changeOrigin" : true,
                     "secure" : false
                 }

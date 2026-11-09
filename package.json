@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "config:sync": "node scripts/sync-server-config.js",
+    "config:check": "node scripts/sync-server-config.js --check"
+  },
   "dependencies": {
     "highlight.js": "^11.11.1",
     "mermaid": "^11.14.0",
